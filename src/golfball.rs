@@ -1,29 +1,19 @@
-use avian3d::prelude::{Collider, LinearVelocity, RigidBody};
+use avian3d::prelude::{Collider, Friction, LinearDamping, LinearVelocity, RigidBody};
 use bevy::{color::palettes::css::WHITE, prelude::*};
-
-use crate::chunk::Chunk;
 
 pub struct GolfballPlugin;
 impl Plugin for GolfballPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_golfball)
-            .add_systems(Update, input_handler)
-            .add_systems(FixedUpdate, advance_physics_air);
+        app.add_systems(Startup, spawn_golfball).add_systems(
+            Update,
+            (input_handler, input_handler_golfball, update_rigid_mode),
+        );
     }
 }
 
 #[derive(Component)]
 struct Golfball {
-    airbone: bool,
-}
-
-struct PerformanceParamaters {
-    wind_direction: Vec2,
-    wind_speed: f32,
-}
-
-struct FrictionParamaters {
-    ground_factor: f32,
+    active: bool,
 }
 
 fn spawn_golfball(
@@ -31,12 +21,14 @@ fn spawn_golfball(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    let radius = 0.0021335;
+    let radius = 0.021335;
     commands.spawn((
-        Golfball { airbone: false },
+        Golfball { active: true },
         RigidBody::Dynamic,
         Collider::sphere(radius),
         LinearVelocity::default(),
+        LinearDamping(0.8), // air resistance
+        Friction::new(0.8), // friction todo: dependent on ground
         Mesh3d(meshes.add(Sphere::new(radius).mesh().ico(5).unwrap())),
         MeshMaterial3d(materials.add(Color::from(WHITE))),
         Transform::from_xyz(0.0, 20.0, 0.0),
@@ -49,7 +41,7 @@ fn input_handler(
 ) {
     let (_, mut velocity, mut transform) = golfball.into_inner();
     if keyboard_input.pressed(KeyCode::KeyT) {
-        velocity.0 = Vec3::new(0.0, 15.0, 0.0);
+        velocity.0 = Vec3::new(20.0, 15.0, 0.0);
     }
     if keyboard_input.pressed(KeyCode::KeyR) {
         // reset velocity and transform for debug
@@ -58,25 +50,31 @@ fn input_handler(
     }
 }
 
-fn advance_physics_air(
-    fixed_time: Res<Time<Fixed>>,
-    mut query: Query<(&Golfball, &mut LinearVelocity, &mut Transform)>,
+fn input_handler_golfball(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut set: ParamSet<(
+        Single<(&Golfball, &Transform)>,
+        Single<&mut Transform, With<Camera3d>>,
+    )>,
 ) {
-    let ground_accel = Vec3::new(0.0, -9.81, 0.0);
-    let wind_accel = Vec3::new(0.0, 0.0, 0.0);
-    let total_accel = ground_accel + wind_accel;
-
-    for (_, mut velocity, mut transform) in
-        query.iter_mut().filter(|(golfball, _, _)| golfball.airbone)
-    {
-        velocity.0 += total_accel * fixed_time.delta_secs();
-        transform.translation += velocity.0 * fixed_time.delta_secs();
+    // golf ball debug
+    if keyboard_input.pressed(KeyCode::KeyF) {
+        let translation = set.p0().1.translation;
+        let mut camera = set.p1();
+        camera.translation = translation + Vec3::new(5.0, 0.1, 0.0);
+        camera.look_at(translation, Vec3::Y);
     }
 }
 
-fn check_ground_interaction(
-    golfballs: Query<&Golfball, With<Mesh3d>>, // tood: check airborne
-    ground_meshes: Query<(Entity, &Chunk), With<Mesh3d>>,
-) {
-    for golfball in golfballs.iter().filter(|golfball| !golfball.airbone) {}
+fn update_rigid_mode(mut commands: Commands, query: Query<(Entity, &Golfball, &RigidBody)>) {
+    for (entity, golfball, ridgid_body) in query {
+        commands
+            .entity(entity)
+            .insert_if(RigidBody::Dynamic, || {
+                golfball.active && ridgid_body.ne(&RigidBody::Dynamic)
+            })
+            .insert_if(RigidBody::Static, || {
+                !golfball.active && ridgid_body.ne(&RigidBody::Static)
+            });
+    }
 }
