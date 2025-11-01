@@ -82,16 +82,14 @@ fn input_handler(
         camera.rotate_axis(dir, time.delta_secs());
     }
     if keyboard_input.pressed(KeyCode::ArrowLeft) {
-        let dir = camera.local_y();
-        camera.rotate_axis(dir, time.delta_secs());
+        camera.rotate_y(time.delta_secs());
     }
     if keyboard_input.pressed(KeyCode::ArrowDown) {
         let dir = -camera.local_x();
         camera.rotate_axis(dir, time.delta_secs());
     }
     if keyboard_input.pressed(KeyCode::ArrowRight) {
-        let dir = -camera.local_y();
-        camera.rotate_axis(dir, time.delta_secs());
+        camera.rotate_y(-time.delta_secs());
     }
     if keyboard_input.pressed(KeyCode::ControlLeft) {
         movement *= 5.0;
