@@ -1,16 +1,23 @@
+mod add_chunk_collider;
 mod chunk;
+mod golfball;
 mod noise;
 
-use crate::chunk::Chunk;
+use crate::{
+    add_chunk_collider::create_collider_from_mesh, chunk::Chunk, golfball::GolfballPlugin,
+};
+use avian3d::PhysicsPlugins;
 use bevy::prelude::*;
 use std::ops::{Deref, Rem, Sub};
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins((DefaultPlugins, PhysicsPlugins::default()))
+        .add_plugins(GolfballPlugin)
         .add_systems(Startup, setup)
         .add_systems(Update, input_handler)
         .add_systems(Update, chunk::insert_chunk_mesh)
+        .add_systems(Update, create_collider_from_mesh)
         .run();
 }
 
