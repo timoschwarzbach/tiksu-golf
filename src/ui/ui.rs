@@ -3,12 +3,13 @@ use bevy::{
     prelude::*,
 };
 
-use crate::ui::course_info::spawn_course_info;
+use crate::ui::course_info::{CourseFlagPlugin, spawn_course_info};
 
 pub struct UiPlugin;
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_layout);
+        app.add_systems(Startup, spawn_layout)
+            .add_plugins(CourseFlagPlugin);
     }
 }
 
