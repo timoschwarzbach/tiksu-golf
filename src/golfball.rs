@@ -1,3 +1,4 @@
+use crate::chunk::chunk_loader::ChunkLoader;
 use avian3d::prelude::{Collider, Friction, LinearDamping, LinearVelocity, RigidBody};
 use bevy::{color::palettes::css::WHITE, prelude::*};
 
@@ -32,6 +33,7 @@ fn spawn_golfball(
         Mesh3d(meshes.add(Sphere::new(radius).mesh().ico(5).unwrap())),
         MeshMaterial3d(materials.add(Color::from(WHITE))),
         Transform::from_xyz(0.0, 20.0, 0.0),
+        ChunkLoader::new(32.0),
     ));
 }
 
