@@ -20,8 +20,7 @@ impl ChunkLoader {
     }
 }
 
-// TODO: super
-pub fn update_chunk_loader_position(
+pub(super) fn update_chunk_loader_position(
     query: Query<(&mut ChunkLoader, &Transform), Changed<Transform>>,
 ) {
     for (mut loader, transform) in query {

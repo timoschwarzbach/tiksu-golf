@@ -20,10 +20,9 @@ impl ChunkManager {
     }
 
     fn load_chunk(&mut self, commands: &mut Commands, chunk_pos: (i32, i32)) {
-        // TODO: import chunk sizes
         self.chunks.entry(chunk_pos).or_insert_with(|| {
             commands
-                .spawn(Chunk::generate_at([chunk_pos.0 * 64, chunk_pos.1 * 64]))
+                .spawn(Chunk::generate_at([chunk_pos.0 * CHUNK_SIZE_METERS as i32, chunk_pos.1 * CHUNK_SIZE_METERS as i32]))
                 .id()
         });
     }
@@ -41,8 +40,7 @@ fn distance(from: (i32, i32), to: (i32, i32)) -> f32 {
     ((dx * dx + dz * dz) as f32).sqrt()
 }
 
-// TODO: super
-pub fn load_chunks(
+pub(super) fn load_chunks(
     query: Query<&ChunkLoader>,
     mut chunks: ResMut<ChunkManager>,
     mut commands: Commands,
@@ -61,8 +59,7 @@ pub fn load_chunks(
     }
 }
 
-// TODO: super
-pub fn unload_chunks(
+pub(super) fn unload_chunks(
     query: Query<&ChunkLoader>,
     mut chunks: ResMut<ChunkManager>,
     mut commands: Commands,

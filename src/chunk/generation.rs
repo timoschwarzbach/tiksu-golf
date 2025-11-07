@@ -3,21 +3,14 @@ use bevy::asset::{Assets, Handle, RenderAssetUsages};
 use bevy::mesh::{Indices, Mesh, Mesh3d, PrimitiveTopology};
 use bevy::pbr::{MeshMaterial3d, StandardMaterial};
 use bevy::prelude::{Commands, Component, Entity, Query, ResMut, Vec3, Without, default};
-
-const CHUNK_SIZE: usize = 64;
-
-#[derive(Component)]
-pub struct Chunk {
-    world_offset: [i32; 2],
-    elevation: Box<[[f32; CHUNK_SIZE + 1]; CHUNK_SIZE + 1]>,
-}
+use crate::chunk::{Chunk, CHUNK_FIDELITY};
 
 impl Chunk {
     pub fn generate_at(world_offset: [i32; 2]) -> Self {
-        let mut elevation = Box::new([[0.0; CHUNK_SIZE + 1]; CHUNK_SIZE + 1]);
+        let mut elevation = Box::new([[0.0; CHUNK_FIDELITY + 1]; CHUNK_FIDELITY + 1]);
 
-        for x in 0..=CHUNK_SIZE {
-            for z in 0..=CHUNK_SIZE {
+        for x in 0..=CHUNK_FIDELITY {
+            for z in 0..=CHUNK_FIDELITY {
                 let height = noise::layered_with_mountains(
                     x as f32 + world_offset[0] as f32,
                     z as f32 + world_offset[1] as f32,
@@ -68,19 +61,19 @@ impl Chunk {
                 .collect::<Vec<_>>(),
         );
 
-        const CHUNK_SIZE_U32: u32 = CHUNK_SIZE as u32;
+        const CHUNK_FIDELITY_U32: u32 = CHUNK_FIDELITY as u32;
 
         result.insert_indices(Indices::U32(
-            (0..CHUNK_SIZE_U32)
-                .flat_map(|x| (0..CHUNK_SIZE_U32).map(move |y| (x, y)))
+            (0..CHUNK_FIDELITY_U32)
+                .flat_map(|x| (0..CHUNK_FIDELITY_U32).map(move |y| (x, y)))
                 .flat_map(move |(x, y)| {
                     [
-                        y * (CHUNK_SIZE_U32 + 1) + x,
-                        y * (CHUNK_SIZE_U32 + 1) + x + 1,
-                        y * (CHUNK_SIZE_U32 + 1) + x + CHUNK_SIZE_U32 + 1,
-                        y * (CHUNK_SIZE_U32 + 1) + x + 1,
-                        y * (CHUNK_SIZE_U32 + 1) + x + CHUNK_SIZE_U32 + 2,
-                        y * (CHUNK_SIZE_U32 + 1) + x + CHUNK_SIZE_U32 + 1,
+                        y * (CHUNK_FIDELITY_U32 + 1) + x,
+                        y * (CHUNK_FIDELITY_U32 + 1) + x + 1,
+                        y * (CHUNK_FIDELITY_U32 + 1) + x + CHUNK_FIDELITY_U32 + 1,
+                        y * (CHUNK_FIDELITY_U32 + 1) + x + 1,
+                        y * (CHUNK_FIDELITY_U32 + 1) + x + CHUNK_FIDELITY_U32 + 2,
+                        y * (CHUNK_FIDELITY_U32 + 1) + x + CHUNK_FIDELITY_U32 + 1,
                     ]
                 })
                 .collect(),
