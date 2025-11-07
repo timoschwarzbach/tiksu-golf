@@ -19,6 +19,7 @@ fn main() {
         .add_plugins((CameraPlugin, GolfballPlugin))
         .add_systems(Startup, setup)
 
+        // TODO: plugin
         .add_systems(Startup, |mut commands: Commands| {
             commands.insert_resource(ChunkManager::new());
         })
