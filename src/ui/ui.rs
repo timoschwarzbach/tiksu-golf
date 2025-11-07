@@ -3,13 +3,16 @@ use bevy::{
     prelude::*,
 };
 
-use crate::ui::course_info::{CourseFlagPlugin, spawn_course_info};
+use crate::ui::{
+    course_info::{CourseFlagPlugin, spawn_course_info},
+    wind_indicator::WindIndicatorPlugin,
+};
 
 pub struct UiPlugin;
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_layout)
-            .add_plugins(CourseFlagPlugin);
+            .add_plugins((CourseFlagPlugin, WindIndicatorPlugin));
     }
 }
 
@@ -56,12 +59,12 @@ fn spawn_layout(mut commands: Commands) {
                         });
 
                     // wind display
-                    spawn_nested_text_bundle(
-                        builder,
-                        Color::Srgba(BLUE),
-                        UiRect::default(),
-                        "Wind Display",
-                    );
+                    // spawn_nested_text_bundle(
+                    //     builder,
+                    //     Color::Srgba(BLUE),
+                    //     UiRect::default(),
+                    //     "Wind Display",
+                    // );
                 });
 
             // bottom row
