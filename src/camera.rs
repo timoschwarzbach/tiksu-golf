@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::chunk::chunk_loader::ChunkLoader;
 
 pub struct CameraPlugin;
 impl Plugin for CameraPlugin {
@@ -14,7 +15,7 @@ fn spawn_camera(mut commands: Commands) {
         Transform::from_xyz(128.0, 50.0, 128.0).looking_at(Vec3::new(0.0, 0.0, 0.0), Vec3::Y);
 
     // Camera in 3D space.
-    commands.spawn((Camera3d::default(), camera_transform));
+    commands.spawn((Camera3d::default(), camera_transform, ChunkLoader::new(512.0)));
 }
 
 fn input_handler(
