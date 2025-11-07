@@ -5,7 +5,7 @@ mod golfball;
 mod noise;
 
 use crate::chunk::chunk_manager::ChunkManager;
-use crate::chunk::{chunk_loader, chunk_manager};
+use crate::chunk::{chunk_loader, chunk_manager, ChunkPlugin};
 use crate::{
     add_chunk_collider::create_collider_from_mesh, camera::CameraPlugin, golfball::GolfballPlugin,
 };
@@ -15,16 +15,8 @@ use bevy::prelude::*;
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, PhysicsPlugins::default()))
-        .add_plugins((CameraPlugin, GolfballPlugin))
+        .add_plugins((CameraPlugin, GolfballPlugin, ChunkPlugin))
         .add_systems(Startup, setup)
-        // TODO: plugin
-        .add_systems(Startup, |mut commands: Commands| {
-            commands.insert_resource(ChunkManager::new());
-        })
-        .add_systems(Update, chunk::insert_chunk_mesh)
-        .add_systems(Update, chunk_manager::load_chunks)
-        .add_systems(Update, chunk_manager::unload_chunks)
-        .add_systems(Update, chunk_loader::update_chunk_loader_position)
         .add_systems(Update, create_collider_from_mesh)
         .run();
 }
