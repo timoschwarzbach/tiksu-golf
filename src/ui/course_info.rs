@@ -1,24 +1,18 @@
 use bevy::asset::RenderAssetUsages;
+use bevy::camera::RenderTarget;
 use bevy::mesh::{Indices, PrimitiveTopology};
 use bevy::prelude::*;
-use bevy::render::render_resource::AsBindGroup;
+use bevy::render::render_resource::{AsBindGroup, TextureDimension, TextureFormat, TextureUsages};
 use bevy::shader::ShaderRef;
 use bevy::sprite_render::{Material2d, Material2dPlugin};
-use bevy::ui::{Node, widget::ImageNode};
+use bevy::ui::Node;
 
-pub(super) fn spawn_course_info(
-    builder: &mut ChildSpawnerCommands,
-    asset_server: Res<AssetServer>,
-) {
-    let image = asset_server.load("image/course_flag.png");
-    builder.spawn((
-        ImageNode::new(image.clone()),
-        Node {
-            min_width: px(100),
-            min_height: px(100),
-            ..default()
-        },
-    ));
+pub(super) fn spawn_course_info(builder: &mut ChildSpawnerCommands) {
+    builder.spawn((Node {
+        min_width: px(100),
+        min_height: px(100),
+        ..default()
+    },));
 }
 
 pub(super) struct CourseFlagPlugin;
@@ -30,19 +24,34 @@ impl Plugin for CourseFlagPlugin {
 }
 fn setup(
     mut commands: Commands,
+    mut images: ResMut<Assets<Image>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<FlagMaterial>>,
     asset_server: Res<AssetServer>,
 ) {
-    commands.spawn((
-        Camera2d::default(),
-        Camera {
-            order: 2,
-            clear_color: ClearColorConfig::None,
-            ..default()
-        },
-    ));
-    // cube
+    let mut image = Image::new_uninit(
+        default(),
+        TextureDimension::D2,
+        TextureFormat::Bgra8UnormSrgb,
+        RenderAssetUsages::all(),
+    );
+    image.texture_descriptor.usage =
+        TextureUsages::TEXTURE_BINDING | TextureUsages::COPY_DST | TextureUsages::RENDER_ATTACHMENT;
+    let image_handle = images.add(image);
+
+    let camera = commands
+        .spawn((
+            Camera2d::default(),
+            Camera {
+                order: -1, // hidden under everything else
+                clear_color: ClearColorConfig::Custom(Color::NONE),
+                target: RenderTarget::Image(image_handle.clone().into()),
+                ..default()
+            },
+        ))
+        .id();
+
+    // spawn 2d flag
     commands.spawn((
         Mesh2d(meshes.add(generate_mesh())),
         MeshMaterial2d(materials.add(FlagMaterial {
@@ -50,6 +59,19 @@ fn setup(
             color_texture: Some(asset_server.load("image/course_flag.png")),
         })),
         Transform::default().with_scale(Vec3::splat(128.0)),
+    ));
+
+    // spawn ui element
+    commands.spawn((
+        Node {
+            position_type: PositionType::Absolute,
+            top: px(0),
+            left: px(12),
+            width: px(100),
+            height: px(100),
+            ..default()
+        },
+        ViewportNode::new(camera),
     ));
 }
 

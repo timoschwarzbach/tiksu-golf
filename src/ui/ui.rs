@@ -13,7 +13,7 @@ impl Plugin for UiPlugin {
     }
 }
 
-fn spawn_layout(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn spawn_layout(mut commands: Commands) {
     const MARGIN: Val = Val::Px(12.);
     commands
         .spawn(Node {
@@ -44,7 +44,7 @@ fn spawn_layout(mut commands: Commands, asset_server: Res<AssetServer>) {
                         })
                         .with_children(|builder| {
                             // course info
-                            spawn_course_info(builder, asset_server);
+                            spawn_course_info(builder);
 
                             // hole info
                             spawn_nested_text_bundle(
