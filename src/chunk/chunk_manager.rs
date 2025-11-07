@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-use bevy::prelude::{Commands, Entity, Query, ResMut, Resource};
 use crate::chunk::chunk_loader::ChunkLoader;
-use crate::chunk::{Chunk, CHUNK_SIZE_METERS};
+use crate::chunk::{CHUNK_SIZE_METERS, Chunk};
+use bevy::prelude::{Commands, Entity, Query, ResMut, Resource};
+use std::collections::{HashMap, HashSet};
 
 #[derive(Resource)]
 pub struct ChunkManager {
@@ -10,21 +10,22 @@ pub struct ChunkManager {
 
 impl ChunkManager {
     pub fn new() -> Self {
-        ChunkManager { chunks: HashMap::new() }
+        ChunkManager {
+            chunks: HashMap::new(),
+        }
     }
 
-    pub fn height_at(&self, x: f32, y: f32) -> f32 {
+    pub fn height_at(&self, x: f32, z: f32) -> f32 {
         todo!("get height")
     }
 
     fn load_chunk(&mut self, commands: &mut Commands, chunk_pos: (i32, i32)) {
         // TODO: import chunk sizes
-       self.chunks
-           .entry(chunk_pos)
-           .or_insert_with(|| commands
-               .spawn(Chunk::generate_at([chunk_pos.0 * 64, chunk_pos.1 * 64]))
-               .id()
-           );
+        self.chunks.entry(chunk_pos).or_insert_with(|| {
+            commands
+                .spawn(Chunk::generate_at([chunk_pos.0 * 64, chunk_pos.1 * 64]))
+                .id()
+        });
     }
 
     fn unload_chunk(&mut self, commands: &mut Commands, chunk_pos: (i32, i32)) {
@@ -42,7 +43,7 @@ fn distance(from: (i32, i32), to: (i32, i32)) -> f32 {
 
 // TODO: super
 pub fn load_chunks(
-    query: Query<(&ChunkLoader)>,
+    query: Query<&ChunkLoader>,
     mut chunks: ResMut<ChunkManager>,
     mut commands: Commands,
 ) {
@@ -62,18 +63,19 @@ pub fn load_chunks(
 
 // TODO: super
 pub fn unload_chunks(
-    query: Query<(&ChunkLoader)>,
+    query: Query<&ChunkLoader>,
     mut chunks: ResMut<ChunkManager>,
     mut commands: Commands,
 ) {
-    let mut schedule_unload = Vec::new();
+    let mut schedule_unload = HashSet::new();
     // unload all chunks too far from any camera
-    for (chunk_pos, chunk) in &mut chunks.chunks {
+    'outer: for (chunk_pos, _) in &mut chunks.chunks {
         for loader in query {
-            if distance(loader.chunk_position, *chunk_pos) > loader.unloading_threshold {
-                schedule_unload.push(*chunk_pos);
+            if distance(loader.chunk_position, *chunk_pos) <= loader.unloading_threshold {
+                continue 'outer;
             }
         }
+        schedule_unload.insert(*chunk_pos);
     }
     for chunk_pos in schedule_unload {
         chunks.unload_chunk(&mut commands, chunk_pos);

@@ -1,7 +1,5 @@
-use bevy::camera::Camera3d;
-use bevy::prelude::{Changed, Component, Query, ResMut, Transform};
-use crate::chunk::chunk_manager::ChunkManager;
 use crate::chunk::CHUNK_SIZE_METERS;
+use bevy::prelude::{Changed, Component, Query, Transform};
 
 const CHUNK_SIZE_METERS_F32: f32 = CHUNK_SIZE_METERS as f32;
 
@@ -15,7 +13,7 @@ pub struct ChunkLoader {
 impl ChunkLoader {
     pub fn new(render_distance: f32) -> ChunkLoader {
         ChunkLoader {
-            loading_threshold: render_distance - CHUNK_SIZE_METERS_F32,
+            loading_threshold: render_distance,
             unloading_threshold: render_distance + CHUNK_SIZE_METERS_F32,
             chunk_position: (0, 0),
         }

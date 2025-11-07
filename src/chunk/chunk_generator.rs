@@ -5,7 +5,6 @@ use bevy::pbr::{MeshMaterial3d, StandardMaterial};
 use bevy::prelude::{Commands, Component, Entity, Query, ResMut, Vec3, Without, default};
 
 const CHUNK_SIZE: usize = 64;
-const WORLD_SEED: u16 = 0;
 
 #[derive(Component)]
 pub struct Chunk {
@@ -15,8 +14,7 @@ pub struct Chunk {
 
 impl Chunk {
     pub fn generate_at(world_offset: [i32; 2]) -> Self {
-        let mut elevation =
-            Box::new([[0.0; CHUNK_SIZE + 1]; CHUNK_SIZE + 1]);
+        let mut elevation = Box::new([[0.0; CHUNK_SIZE + 1]; CHUNK_SIZE + 1]);
 
         for x in 0..=CHUNK_SIZE {
             for z in 0..=CHUNK_SIZE {
@@ -59,13 +57,13 @@ impl Chunk {
                 .iter()
                 .enumerate()
                 .flat_map(|(x, row)| {
-                    row.iter()
-                        .enumerate()
-                        .map(move |(z, _)| if (x >> 3) & 1 != (z >> 3) & 1 {
+                    row.iter().enumerate().map(move |(z, _)| {
+                        if (x >> 3) & 1 != (z >> 3) & 1 {
                             [0.0, 1.0, 0.0, 0.0]
                         } else {
                             [0.0, 0.5, 0.0, 0.0]
-                        })
+                        }
+                    })
                 })
                 .collect::<Vec<_>>(),
         );
