@@ -15,8 +15,13 @@ impl ChunkManager {
         }
     }
 
-    pub fn height_at(&self, x: f32, z: f32) -> f32 {
-        todo!("get height")
+    pub fn height_at(&self, x: f32, z: f32) -> Option<f32> {
+        let chunk_pos = (
+            (x / CHUNK_SIZE_METERS as f32).floor() as i32,
+            (z / CHUNK_SIZE_METERS as f32).floor() as i32,
+        );
+
+        todo!("interpolate")
     }
 
     fn load_chunk(&mut self, commands: &mut Commands, chunk_pos: (i32, i32)) {
