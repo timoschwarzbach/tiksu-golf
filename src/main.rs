@@ -5,20 +5,16 @@ mod golfball;
 mod noise;
 mod ui;
 
-use crate::chunk::chunk_manager::ChunkManager;
-use crate::chunk::{ChunkPlugin, chunk_loader, chunk_manager};
-use crate::{
-    add_chunk_collider::create_collider_from_mesh, camera::CameraPlugin, golfball::GolfballPlugin,
-};
+use crate::{camera::CameraPlugin, chunk::ChunkPlugin, golfball::GolfballPlugin};
 use avian3d::PhysicsPlugins;
 use bevy::prelude::*;
 
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, PhysicsPlugins::default()))
-        .add_plugins((CameraPlugin, GolfballPlugin))
+        .add_plugins((CameraPlugin, GolfballPlugin, ChunkPlugin, ui::ui::UiPlugin))
         .add_systems(Startup, setup)
-        .add_systems(Update, create_collider_from_mesh)
+        // .add_systems(Update, create_collider_from_mesh)
         .run();
 }
 
@@ -39,13 +35,6 @@ fn setup(mut commands: Commands) {
     commands.spawn((
         Text::new("Controls:\nW/A/S/D: Move\nSpace: Move Up\nLShift: Move Down\nLCtrl: Speed Up\nArrows: Rotate"),
         Node {
-            position_type: PositionType::Absolute,
-            top: px(12),
-            left: px(12),
-            ..default()
-        },
-    ));
-}
             position_type: PositionType::Absolute,
             top: px(12),
             left: px(12),
