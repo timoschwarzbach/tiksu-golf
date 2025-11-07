@@ -9,6 +9,9 @@ impl Plugin for CameraPlugin {
     }
 }
 
+#[derive(Component)]
+pub struct ActiveCamera;
+
 fn spawn_camera(mut commands: Commands) {
     // Transform for the camera and lighting, looking at (0,0,0) (the position of the mesh).
     let camera_transform =
@@ -18,13 +21,14 @@ fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Camera3d::default(),
         camera_transform,
+        ActiveCamera,
         ChunkLoader::new(512.0),
     ));
 }
 
 fn input_handler(
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    mut camera: Single<&mut Transform, With<Camera3d>>,
+    mut camera: Single<&mut Transform, (With<Camera3d>, With<ActiveCamera>)>,
     time: Res<Time>,
 ) {
     let mut movement = Vec3::ZERO;
