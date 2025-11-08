@@ -18,7 +18,7 @@ fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Camera3d::default(),
         camera_transform,
-        ChunkLoader::new(512.0),
+        ChunkLoader::new(384.0),
     ));
 }
 
@@ -62,8 +62,8 @@ fn input_handler(
         camera.rotate_y(-time.delta_secs());
     }
     if keyboard_input.pressed(KeyCode::ControlLeft) {
-        movement *= 5.0;
+        movement *= 10.0;
     }
 
-    camera.translation += movement * time.delta_secs() * 100.0;
+    camera.translation += movement * time.delta_secs() * 10.0;
 }

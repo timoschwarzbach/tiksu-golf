@@ -1,17 +1,27 @@
-use crate::noise;
+use std::ops::Rem;
 use bevy::asset::{Assets, Handle, RenderAssetUsages};
+use bevy::image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor};
+use bevy::math::Affine2;
 use bevy::mesh::{Indices, Mesh, Mesh3d, PrimitiveTopology};
 use bevy::pbr::{MeshMaterial3d, StandardMaterial};
-use bevy::prelude::{Commands, Component, Entity, Query, ResMut, Vec3, Without, default};
-use crate::chunk::{Chunk, CHUNK_FIDELITY};
+use bevy::prelude::{Commands, Component, Entity, Query, ResMut, Vec3, Without, default, Image, Res, AssetServer, Vec2, Material, TypePath, Asset};
+use bevy::render::render_resource::AsBindGroup;
+use bevy::shader::ShaderRef;
+use crate::chunk::{Chunk, CHUNK_FIDELITY, CHUNK_SIZE_METERS};
+use crate::generation::grasslands;
+use crate::generation::grasslands::GrasslandsGenerator;
+use crate::generation::TerrainGenerator;
 
 impl Chunk {
     pub fn generate_at(world_offset: [i32; 2]) -> Self {
         let mut elevation = Box::new([[0.0; CHUNK_FIDELITY + 1]; CHUNK_FIDELITY + 1]);
 
+        // TODO: store somewhere (?)
+        let generator = GrasslandsGenerator::new(42);
+
         for x in 0..=CHUNK_FIDELITY {
             for z in 0..=CHUNK_FIDELITY {
-                let height = noise::layered_with_mountains(
+                let height = generator.height_at(
                     x as f32 + world_offset[0] as f32,
                     z as f32 + world_offset[1] as f32,
                 );
@@ -45,18 +55,14 @@ impl Chunk {
         );
 
         result.insert_attribute(
-            Mesh::ATTRIBUTE_COLOR,
+            Mesh::ATTRIBUTE_UV_0,
             self.elevation
                 .iter()
                 .enumerate()
                 .flat_map(|(x, row)| {
-                    row.iter().enumerate().map(move |(z, _)| {
-                        if (x >> 3) & 1 != (z >> 3) & 1 {
-                            [0.0, 1.0, 0.0, 0.0]
-                        } else {
-                            [0.0, 0.5, 0.0, 0.0]
-                        }
-                    })
+                    row.iter()
+                        .enumerate()
+                        .map(move |(z, _)| [x as f32 / CHUNK_SIZE_METERS as f32, z as f32  / CHUNK_SIZE_METERS as f32])
                 })
                 .collect::<Vec<_>>(),
         );
@@ -92,17 +98,21 @@ impl Chunk {
 pub fn insert_chunk_mesh(
     query: Query<(Entity, &Chunk), Without<Mesh3d>>,
     mut meshes: ResMut<Assets<Mesh>>,
+    asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut commands: Commands,
 ) {
     for (entity, chunk) in query {
+        let material = materials.add(StandardMaterial {
+            metallic_roughness_texture: Some(asset_server.load("textures/rocky_terrain/rocky_terrain_02_arm_4k.png")),
+            base_color_texture: Some(asset_server.load("textures/rocky_terrain/rocky_terrain_02_diff_4k.png")),
+            normal_map_texture: Some(asset_server.load("textures/rocky_terrain/rocky_terrain_02_nor_gl_4k.png")),
+            ..default()
+        });
         let cube_mesh_handle: Handle<Mesh> = meshes.add(chunk.generate_mesh());
         commands.entity(entity).insert((
             Mesh3d(cube_mesh_handle),
-            MeshMaterial3d(materials.add(StandardMaterial {
-                //base_color_texture: Some(custom_texture_handle),
-                ..default()
-            })),
+            MeshMaterial3d(material),
         ));
     }
 }
