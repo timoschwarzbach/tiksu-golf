@@ -2,11 +2,13 @@ mod add_chunk_collider;
 mod camera;
 pub mod chunk;
 pub mod generation;
-mod golfball;
+mod objects;
 mod ui;
 use crate::{
-    add_chunk_collider::create_collider_from_mesh, camera::CameraPlugin, chunk::ChunkPlugin,
-    golfball::GolfballPlugin,
+    add_chunk_collider::create_collider_from_mesh,
+    camera::CameraPlugin,
+    chunk::ChunkPlugin,
+    objects::{flag_pole::FlagPolePlugin, golfball::GolfballPlugin},
 };
 use avian3d::PhysicsPlugins;
 use bevy::prelude::*;
@@ -14,7 +16,13 @@ use bevy::prelude::*;
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, PhysicsPlugins::default()))
-        .add_plugins((CameraPlugin, GolfballPlugin, ChunkPlugin, ui::ui::UiPlugin))
+        .add_plugins((
+            CameraPlugin,
+            GolfballPlugin,
+            ChunkPlugin,
+            ui::ui::UiPlugin,
+            FlagPolePlugin,
+        ))
         .add_systems(Startup, setup)
         .add_systems(Update, create_collider_from_mesh)
         .run();
