@@ -92,7 +92,7 @@ fn input_handler(
         movement *= 10.0;
     }
 
-    camera.translation += movement * time.delta_secs() * 10.0;
+    camera.translation += movement * time.delta_secs() * 20.0;
 }
 
 #[derive(Resource)]

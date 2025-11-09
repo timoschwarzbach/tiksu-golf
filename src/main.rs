@@ -3,7 +3,7 @@ mod animation;
 mod camera;
 pub mod chunk;
 pub mod generation;
-mod golfball;
+mod objects;
 mod state;
 mod ui;
 
@@ -11,7 +11,7 @@ use crate::{
     add_chunk_collider::create_collider_from_mesh,
     camera::CameraPlugin,
     chunk::ChunkPlugin,
-    golfball::GolfballPlugin,
+    objects::{flag_pole::FlagPolePlugin, golfball::GolfballPlugin},
     state::{
         aim::AimStatePlugin,
         state::{AppState, debug_state_change_input_handler},
@@ -32,6 +32,7 @@ fn main() {
             animation::AnimationPlugin,
             AimStatePlugin,
             ShootChallengePlugin,
+            FlagPolePlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Startup, setup)
