@@ -15,6 +15,23 @@ pub(self) struct Chunk {
     elevation: Box<[[f32; CHUNK_FIDELITY + 1]; CHUNK_FIDELITY + 1]>,
 }
 
+impl Chunk {
+    pub(self) fn height_at(&self, sub_chunk_x: f32, sub_chunk_z: f32) -> Option<f32> {
+        // TODO: this code is hardcoded for 1mx1m mesh fidelity - update once chunk fidelity is up for change
+        let x_idx = sub_chunk_x.floor() as usize;
+        let z_idx = sub_chunk_z.floor() as usize;
+        let x_sub = sub_chunk_x % 1.0;
+        let z_sub = sub_chunk_z % 1.0;
+
+        let interpolated = self.elevation.get(z_idx)?.get(x_idx)? * (1.0 - z_sub) * (1.0 - x_sub)
+            + self.elevation.get(z_idx + 1)?.get(x_idx)? * z_sub * (1.0 - x_sub)
+            + self.elevation.get(z_idx)?.get(x_idx + 1)? * (1.0 - z_sub) * x_sub
+            + self.elevation.get(z_idx + 1)?.get(x_idx + 1)? * z_sub * x_sub;
+
+        Some(interpolated)
+    }
+}
+
 pub struct ChunkPlugin;
 
 impl Plugin for ChunkPlugin {

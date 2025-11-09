@@ -15,13 +15,16 @@ impl ChunkManager {
         }
     }
 
-    pub fn height_at(&self, x: f32, z: f32) -> Option<f32> {
+    pub fn height_at(&self, chunks: Query<(Entity, &Chunk)>, x: f32, z: f32) -> Option<f32> {
         let chunk_pos = (
             (x / CHUNK_SIZE_METERS as f32).floor() as i32,
             (z / CHUNK_SIZE_METERS as f32).floor() as i32,
         );
 
-        todo!("interpolate")
+        let chunk_id = self.chunks.get(&chunk_pos)?;
+        let chunk = chunks.get(*chunk_id).ok()?.1;
+
+        chunk.height_at( x % CHUNK_SIZE_METERS as f32, z % CHUNK_SIZE_METERS as f32)
     }
 
     fn load_chunk(&mut self, commands: &mut Commands, chunk_pos: (i32, i32)) {
