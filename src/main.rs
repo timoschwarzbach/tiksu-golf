@@ -1,11 +1,12 @@
 mod add_chunk_collider;
 mod camera;
 pub mod chunk;
-mod golfball;
 pub mod generation;
+mod golfball;
 
 use crate::{
-    add_chunk_collider::create_collider_from_mesh, camera::CameraPlugin, golfball::GolfballPlugin, chunk::ChunkPlugin,
+    add_chunk_collider::create_collider_from_mesh, camera::CameraPlugin, chunk::ChunkPlugin,
+    golfball::GolfballPlugin,
 };
 use avian3d::PhysicsPlugins;
 use bevy::prelude::*;
@@ -20,9 +21,6 @@ fn main() {
 }
 
 fn setup(mut commands: Commands) {
-    let light_transform =
-        Transform::from_xyz(0.0, 500.0, 2000.0).looking_at(Vec3::new(20.0, 50.0, 0.0), Vec3::Y);
-
     // Light up the scene.
     commands.spawn((
         DirectionalLight {

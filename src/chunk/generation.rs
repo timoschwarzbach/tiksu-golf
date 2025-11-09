@@ -1,16 +1,10 @@
-use std::ops::Rem;
+use crate::chunk::{CHUNK_FIDELITY, CHUNK_SIZE_METERS, Chunk};
+use crate::generation::TerrainGenerator;
+use crate::generation::grasslands::GrasslandsGenerator;
 use bevy::asset::{Assets, Handle, RenderAssetUsages};
-use bevy::image::{ImageAddressMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor};
-use bevy::math::Affine2;
 use bevy::mesh::{Indices, Mesh, Mesh3d, PrimitiveTopology};
 use bevy::pbr::{MeshMaterial3d, StandardMaterial};
-use bevy::prelude::{Commands, Component, Entity, Query, ResMut, Vec3, Without, default, Image, Res, AssetServer, Vec2, Material, TypePath, Asset};
-use bevy::render::render_resource::AsBindGroup;
-use bevy::shader::ShaderRef;
-use crate::chunk::{Chunk, CHUNK_FIDELITY, CHUNK_SIZE_METERS};
-use crate::generation::grasslands;
-use crate::generation::grasslands::GrasslandsGenerator;
-use crate::generation::TerrainGenerator;
+use bevy::prelude::{AssetServer, Commands, Entity, Query, Res, ResMut, Vec3, Without, default};
 
 impl Chunk {
     pub fn generate_at(world_offset: [i32; 2]) -> Self {
@@ -60,9 +54,12 @@ impl Chunk {
                 .iter()
                 .enumerate()
                 .flat_map(|(x, row)| {
-                    row.iter()
-                        .enumerate()
-                        .map(move |(z, _)| [x as f32 / CHUNK_SIZE_METERS as f32, z as f32  / CHUNK_SIZE_METERS as f32])
+                    row.iter().enumerate().map(move |(z, _)| {
+                        [
+                            x as f32 / CHUNK_SIZE_METERS as f32,
+                            z as f32 / CHUNK_SIZE_METERS as f32,
+                        ]
+                    })
                 })
                 .collect::<Vec<_>>(),
         );
@@ -104,15 +101,20 @@ pub fn insert_chunk_mesh(
 ) {
     for (entity, chunk) in query {
         let material = materials.add(StandardMaterial {
-            metallic_roughness_texture: Some(asset_server.load("textures/rocky_terrain/rocky_terrain_02_arm_4k.png")),
-            base_color_texture: Some(asset_server.load("textures/rocky_terrain/rocky_terrain_02_diff_4k.png")),
-            normal_map_texture: Some(asset_server.load("textures/rocky_terrain/rocky_terrain_02_nor_gl_4k.png")),
+            metallic_roughness_texture: Some(
+                asset_server.load("textures/rocky_terrain/rocky_terrain_02_arm_4k.png"),
+            ),
+            base_color_texture: Some(
+                asset_server.load("textures/rocky_terrain/rocky_terrain_02_diff_4k.png"),
+            ),
+            normal_map_texture: Some(
+                asset_server.load("textures/rocky_terrain/rocky_terrain_02_nor_gl_4k.png"),
+            ),
             ..default()
         });
         let cube_mesh_handle: Handle<Mesh> = meshes.add(chunk.generate_mesh());
-        commands.entity(entity).insert((
-            Mesh3d(cube_mesh_handle),
-            MeshMaterial3d(material),
-        ));
+        commands
+            .entity(entity)
+            .insert((Mesh3d(cube_mesh_handle), MeshMaterial3d(material)));
     }
 }

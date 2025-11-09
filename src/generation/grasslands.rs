@@ -1,6 +1,6 @@
+use crate::generation::TerrainGenerator;
 use noise::NoiseFn;
 use noise::Perlin;
-use crate::generation::TerrainGenerator;
 
 /* Pipeline (one time):
  * 1. generate course / routes (single fixed line for now)
@@ -30,7 +30,7 @@ impl GrasslandsGenerator {
     pub fn new(seed: u32) -> Self {
         GrasslandsGenerator {
             seed,
-            perlin: Perlin::new(seed)
+            perlin: Perlin::new(seed),
         }
     }
 

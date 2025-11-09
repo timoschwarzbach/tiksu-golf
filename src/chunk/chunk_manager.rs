@@ -24,13 +24,16 @@ impl ChunkManager {
         let chunk_id = self.chunks.get(&chunk_pos)?;
         let chunk = chunks.get(*chunk_id).ok()?.1;
 
-        chunk.height_at( x % CHUNK_SIZE_METERS as f32, z % CHUNK_SIZE_METERS as f32)
+        chunk.height_at(x % CHUNK_SIZE_METERS as f32, z % CHUNK_SIZE_METERS as f32)
     }
 
     fn load_chunk(&mut self, commands: &mut Commands, chunk_pos: (i32, i32)) {
         self.chunks.entry(chunk_pos).or_insert_with(|| {
             commands
-                .spawn(Chunk::generate_at([chunk_pos.0 * CHUNK_SIZE_METERS as i32, chunk_pos.1 * CHUNK_SIZE_METERS as i32]))
+                .spawn(Chunk::generate_at([
+                    chunk_pos.0 * CHUNK_SIZE_METERS as i32,
+                    chunk_pos.1 * CHUNK_SIZE_METERS as i32,
+                ]))
                 .id()
         });
     }
