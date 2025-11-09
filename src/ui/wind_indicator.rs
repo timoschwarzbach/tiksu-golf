@@ -17,8 +17,8 @@ struct WindIndicator;
 pub(super) struct WindIndicatorPlugin;
 impl Plugin for WindIndicatorPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup)
-            .add_systems(Update, update_wind_indicator_position);
+        app.add_systems(Startup, setup);
+           // .add_systems(Update, update_wind_indicator_position);
     }
 }
 fn setup(
@@ -51,15 +51,15 @@ fn setup(
         .id();
 
     // spawn tiksu
-    let mesh_scene = SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset(GLTF_PATH)));
+    /*let mesh_scene = SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset(GLTF_PATH)));
     commands
         .spawn((
             WindIndicator,
             mesh_scene,
             Transform::from_xyz(0.0, -1.0, 0.0).with_scale(Vec3::splat(1.0)),
-            WIND_INDICATOR_LAYER,
+            // WIND_INDICATOR_LAYER,
         ))
-        .observe(apply_render_layers_to_children);
+        .observe(apply_render_layers_to_children);*/
 
     // spawn ui element
     commands.spawn((

@@ -16,7 +16,7 @@ fn main() {
         .add_plugins((DefaultPlugins, PhysicsPlugins::default()))
         .add_plugins((CameraPlugin, GolfballPlugin, ChunkPlugin, ui::ui::UiPlugin))
         .add_systems(Startup, setup)
-        // .add_systems(Update, create_collider_from_mesh)
+        .add_systems(Update, create_collider_from_mesh)
         .run();
 }
 

@@ -40,6 +40,7 @@ impl ChunkManager {
 
     fn unload_chunk(&mut self, commands: &mut Commands, chunk_pos: (i32, i32)) {
         if let Some(chunk) = self.chunks.remove(&chunk_pos) {
+            // TODO: schedule despawning to avoid race conditions
             commands.entity(chunk).despawn();
         }
     }
