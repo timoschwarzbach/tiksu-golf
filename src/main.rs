@@ -3,7 +3,7 @@ mod camera;
 pub mod chunk;
 pub mod generation;
 mod golfball;
-
+mod ui;
 use crate::{
     add_chunk_collider::create_collider_from_mesh, camera::CameraPlugin, chunk::ChunkPlugin,
     golfball::GolfballPlugin,
@@ -14,9 +14,9 @@ use bevy::prelude::*;
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, PhysicsPlugins::default()))
-        .add_plugins((CameraPlugin, GolfballPlugin, ChunkPlugin))
+        .add_plugins((CameraPlugin, GolfballPlugin, ChunkPlugin, ui::ui::UiPlugin))
         .add_systems(Startup, setup)
-        .add_systems(Update, create_collider_from_mesh)
+        // .add_systems(Update, create_collider_from_mesh)
         .run();
 }
 
