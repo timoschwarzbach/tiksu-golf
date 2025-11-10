@@ -2,6 +2,7 @@ use crate::chunk::{CHUNK_FIDELITY, CHUNK_SIZE_METERS, Chunk};
 use crate::generation::TerrainGenerator;
 use crate::generation::grasslands::GrasslandsGenerator;
 use bevy::asset::{Assets, Handle, RenderAssetUsages};
+use bevy::light::NotShadowCaster;
 use bevy::mesh::{Indices, Mesh, Mesh3d, PrimitiveTopology};
 use bevy::pbr::{MeshMaterial3d, StandardMaterial};
 use bevy::prelude::{AssetServer, Commands, Entity, Query, Res, ResMut, Vec3, Without, default};
@@ -101,20 +102,18 @@ pub fn insert_chunk_mesh(
 ) {
     for (entity, chunk) in query {
         let material = materials.add(StandardMaterial {
-            metallic_roughness_texture: Some(
-                asset_server.load("textures/rocky_terrain/rocky_terrain_02_arm_4k.png"),
-            ),
             base_color_texture: Some(
-                asset_server.load("textures/rocky_terrain/rocky_terrain_02_diff_4k.png"),
+                asset_server.load("textures/grass/Grass008_2K-PNG_Color.png"),
             ),
             normal_map_texture: Some(
-                asset_server.load("textures/rocky_terrain/rocky_terrain_02_nor_gl_4k.png"),
+                asset_server.load("textures/grass/Grass008_2K-PNG_NormalGL.png"),
             ),
+            reflectance: 0.06,
             ..default()
         });
         let cube_mesh_handle: Handle<Mesh> = meshes.add(chunk.generate_mesh());
         commands
             .entity(entity)
-            .insert((Mesh3d(cube_mesh_handle), MeshMaterial3d(material)));
+            .insert((Mesh3d(cube_mesh_handle), MeshMaterial3d(material), NotShadowCaster));
     }
 }

@@ -25,10 +25,10 @@ fn setup(mut commands: Commands) {
     commands.spawn((
         DirectionalLight {
             color: Color::srgb(0.98, 0.95, 0.82),
-            shadows_enabled: false, // TODO: allow mesh to receive but not cast shadows
+            shadows_enabled: true, // TODO: allow mesh to receive but not cast shadows
             ..default()
         },
-        Transform::from_xyz(0.0, 0.0, 0.0).looking_at(Vec3::new(-0.15, -0.1, 0.25), Vec3::Y),
+        Transform::from_xyz(0.0, 0.0, 0.0).looking_at(Vec3::new(0.1, -0.1, 0.3), Vec3::Y),
     ));
 
     // Text to describe the controls.
