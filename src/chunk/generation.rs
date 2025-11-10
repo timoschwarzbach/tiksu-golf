@@ -1,4 +1,4 @@
-use crate::chunk::{CHUNK_FIDELITY, CHUNK_SIZE_METERS, Chunk};
+use crate::chunk::{CHUNK_FIDELITY, CHUNK_SIZE_METERS, Chunk, ToUnload};
 use crate::generation::TerrainGenerator;
 use crate::generation::grasslands::GrasslandsGenerator;
 use bevy::asset::{Assets, Handle, RenderAssetUsages};
@@ -93,7 +93,7 @@ impl Chunk {
 }
 
 pub fn insert_chunk_mesh(
-    query: Query<(Entity, &Chunk), Without<Mesh3d>>,
+    query: Query<(Entity, &Chunk), (Without<Mesh3d>, Without<ToUnload>)>,
     mut meshes: ResMut<Assets<Mesh>>,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,

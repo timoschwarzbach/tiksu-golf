@@ -48,7 +48,7 @@ impl Plugin for ChunkPlugin {
 }
 
 #[derive(Component)]
-struct ToUnload;
+pub struct ToUnload;
 
 fn despawn_unloaded_chunks(query: Query<Entity, With<ToUnload>>, mut commands: Commands) {
     for chunk in query {
