@@ -36,7 +36,7 @@ fn setup(mut commands: Commands) {
         Text::new("Controls:\nW/A/S/D: Move\nSpace: Move Up\nLShift: Move Down\nLCtrl: Speed Up\nArrows: Rotate"),
         Node {
             position_type: PositionType::Absolute,
-            top: px(12),
+            top: px(200),
             left: px(12),
             ..default()
         },
