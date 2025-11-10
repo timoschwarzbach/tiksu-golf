@@ -1,6 +1,7 @@
 use crate::chunk::chunk_loader::ChunkLoader;
 use avian3d::prelude::{Collider, Friction, LinearDamping, LinearVelocity, RigidBody};
 use bevy::{color::palettes::css::WHITE, prelude::*};
+use crate::camera::ActiveCamera;
 
 pub struct GolfballPlugin;
 impl Plugin for GolfballPlugin {
@@ -56,7 +57,7 @@ fn input_handler_golfball(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mut set: ParamSet<(
         Single<(&Golfball, &Transform)>,
-        Single<&mut Transform, With<Camera3d>>,
+        Single<&mut Transform, With<ActiveCamera>>,
     )>,
 ) {
     // golf ball debug

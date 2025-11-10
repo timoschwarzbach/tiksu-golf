@@ -1,5 +1,5 @@
 use crate::chunk::chunk_loader::ChunkLoader;
-use crate::chunk::{CHUNK_SIZE_METERS, Chunk};
+use crate::chunk::{CHUNK_SIZE_METERS, Chunk, ToUnload};
 use bevy::prelude::{Commands, Entity, Query, ResMut, Resource};
 use std::collections::{HashMap, HashSet};
 
@@ -15,26 +15,32 @@ impl ChunkManager {
         }
     }
 
-    pub fn height_at(&self, x: f32, z: f32) -> Option<f32> {
+    pub fn height_at(&self, chunks: Query<(Entity, &Chunk)>, x: f32, z: f32) -> Option<f32> {
         let chunk_pos = (
             (x / CHUNK_SIZE_METERS as f32).floor() as i32,
             (z / CHUNK_SIZE_METERS as f32).floor() as i32,
         );
 
-        todo!("interpolate")
+        let chunk_id = self.chunks.get(&chunk_pos)?;
+        let chunk = chunks.get(*chunk_id).ok()?.1;
+
+        chunk.height_at(x % CHUNK_SIZE_METERS as f32, z % CHUNK_SIZE_METERS as f32)
     }
 
     fn load_chunk(&mut self, commands: &mut Commands, chunk_pos: (i32, i32)) {
         self.chunks.entry(chunk_pos).or_insert_with(|| {
             commands
-                .spawn(Chunk::generate_at([chunk_pos.0 * CHUNK_SIZE_METERS as i32, chunk_pos.1 * CHUNK_SIZE_METERS as i32]))
+                .spawn(Chunk::generate_at([
+                    chunk_pos.0 * CHUNK_SIZE_METERS as i32,
+                    chunk_pos.1 * CHUNK_SIZE_METERS as i32,
+                ]))
                 .id()
         });
     }
 
     fn unload_chunk(&mut self, commands: &mut Commands, chunk_pos: (i32, i32)) {
         if let Some(chunk) = self.chunks.remove(&chunk_pos) {
-            commands.entity(chunk).despawn();
+             commands.entity(chunk).insert(ToUnload);
         }
     }
 }
