@@ -1,10 +1,9 @@
 use avian3d::prelude::{Collider, RigidBody};
 use bevy::prelude::*;
-use crate::chunk::ToUnload;
 
 pub fn create_collider_from_mesh(
     mut commands: Commands,
-    query: Query<(Entity, &Mesh3d), (Without<Collider>, Without<ToUnload>)>,
+    query: Query<(Entity, &Mesh3d), Without<Collider>>,
     mesh_assets: Res<Assets<Mesh>>,
 ) {
     for (entity, mesh) in query {

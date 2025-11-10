@@ -1,7 +1,7 @@
+use crate::camera::ActiveCamera;
 use crate::chunk::chunk_loader::ChunkLoader;
 use avian3d::prelude::{Collider, Friction, LinearDamping, LinearVelocity, RigidBody};
 use bevy::{color::palettes::css::WHITE, prelude::*};
-use crate::camera::ActiveCamera;
 
 pub struct GolfballPlugin;
 impl Plugin for GolfballPlugin {
