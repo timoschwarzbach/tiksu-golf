@@ -4,7 +4,7 @@ pub mod generation;
 
 use crate::chunk::chunk_manager::ChunkManager;
 use bevy::app::{App, Plugin, Startup, Update};
-use bevy::prelude::{Commands, Component};
+use bevy::prelude::{Commands, Component, Entity, Query, With};
 
 pub(self) const CHUNK_SIZE_METERS: usize = 32;
 pub(self) const CHUNK_FIDELITY: usize = CHUNK_SIZE_METERS * 1;
@@ -42,6 +42,16 @@ impl Plugin for ChunkPlugin {
         .add_systems(Update, generation::insert_chunk_mesh)
         .add_systems(Update, chunk_manager::load_chunks)
         .add_systems(Update, chunk_manager::unload_chunks)
-        .add_systems(Update, chunk_loader::update_chunk_loader_position);
+        .add_systems(Update, chunk_loader::update_chunk_loader_position)
+        .add_systems(Update, despawn_unloaded_chunks);
+    }
+}
+
+#[derive(Component)]
+struct ToUnload;
+
+fn despawn_unloaded_chunks(query: Query<Entity, With<ToUnload>>, mut commands: Commands) {
+    for chunk in query {
+        commands.entity(chunk).despawn();
     }
 }

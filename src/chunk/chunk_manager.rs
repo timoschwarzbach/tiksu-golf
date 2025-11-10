@@ -1,5 +1,5 @@
 use crate::chunk::chunk_loader::ChunkLoader;
-use crate::chunk::{CHUNK_SIZE_METERS, Chunk};
+use crate::chunk::{CHUNK_SIZE_METERS, Chunk, ToUnload};
 use bevy::prelude::{Commands, Entity, Query, ResMut, Resource};
 use std::collections::{HashMap, HashSet};
 
@@ -40,8 +40,7 @@ impl ChunkManager {
 
     fn unload_chunk(&mut self, commands: &mut Commands, chunk_pos: (i32, i32)) {
         if let Some(chunk) = self.chunks.remove(&chunk_pos) {
-            // TODO: schedule despawning to avoid race conditions
-            // commands.entity(chunk).despawn();
+             commands.entity(chunk).insert(ToUnload);
         }
     }
 }
