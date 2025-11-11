@@ -4,5 +4,6 @@ A super fun reinterpretation of Mario Golf for the nintendo64 and our project fo
 
 ## Attributions
 
-[Grass Texture](https://polyhaven.com/a/rocky_terrain_02/)
+[Grass Texture](https://ambientcg.com/view?id=Grass008)
+
 [Skybox](https://freestylized.com/skybox/sky_36/)
