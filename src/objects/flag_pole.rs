@@ -1,8 +1,9 @@
 use avian3d::prelude::RigidBody;
 use bevy::{
     asset::RenderAssetUsages,
-    color::palettes::css::{RED, WHITE},
+    color::palettes::css::{BLUE, RED, WHITE},
     mesh::{Indices, PrimitiveTopology},
+    pbr::{ExtendedMaterial, MaterialExtension},
     prelude::*,
     render::render_resource::AsBindGroup,
     shader::ShaderRef,
@@ -12,7 +13,9 @@ pub struct FlagPolePlugin;
 
 impl Plugin for FlagPolePlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(MaterialPlugin::<FlagMaterial>::default())
+        app.add_plugins(MaterialPlugin::<
+            ExtendedMaterial<StandardMaterial, FlagMaterialExtension>,
+        >::default())
             .add_systems(Startup, spawn_flag_pole);
     }
 }
@@ -23,8 +26,8 @@ struct FlagPole;
 fn spawn_flag_pole(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut flag_materials: ResMut<Assets<FlagMaterial>>,
+    mut default_materials: ResMut<Assets<StandardMaterial>>,
+    mut materials: ResMut<Assets<ExtendedMaterial<StandardMaterial, FlagMaterialExtension>>>,
 ) {
     commands
         .spawn((
@@ -35,13 +38,22 @@ fn spawn_flag_pole(
         .with_children(|builder| {
             builder.spawn((
                 Mesh3d(meshes.add(Cylinder::new(0.05, 2.0))),
-                MeshMaterial3d(materials.add(Color::from(WHITE))),
+                MeshMaterial3d(default_materials.add(StandardMaterial {
+                    base_color: Color::from(WHITE),
+                    ..Default::default()
+                })),
                 Transform::from_xyz(0.0, 0.0, 0.0),
             ));
             builder.spawn((
                 Mesh3d(meshes.add(generate_mesh())),
-                MeshMaterial3d(flag_materials.add(FlagMaterial {
-                    color: Color::from(RED).to_linear(),
+                MeshMaterial3d(materials.add(ExtendedMaterial {
+                    base: StandardMaterial {
+                        base_color: RED.into(),
+                        ..Default::default()
+                    },
+                    extension: FlagMaterialExtension {
+                        color: Color::from(BLUE).to_linear(),
+                    },
                 })),
                 Transform::from_xyz(0.5, 0.75, 0.0).with_scale(Vec3::new(1.0, 0.5, 1.0)),
             ));
@@ -102,13 +114,13 @@ fn generate_mesh() -> Mesh {
 
 const SHADER_ASSET_PATH: &str = "shaders/flag_pole.wgsl";
 
-#[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
-struct FlagMaterial {
-    #[uniform(0)]
+#[derive(Asset, AsBindGroup, Reflect, Debug, Clone, Default)]
+struct FlagMaterialExtension {
+    #[uniform(100)]
     color: LinearRgba,
 }
 
-impl Material for FlagMaterial {
+impl MaterialExtension for FlagMaterialExtension {
     fn vertex_shader() -> ShaderRef {
         SHADER_ASSET_PATH.into()
     }
