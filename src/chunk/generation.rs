@@ -6,6 +6,9 @@ use bevy::light::NotShadowCaster;
 use bevy::mesh::{Indices, Mesh, Mesh3d, PrimitiveTopology};
 use bevy::pbr::{MeshMaterial3d, StandardMaterial};
 use bevy::prelude::{AssetServer, Commands, Entity, Query, Res, ResMut, Vec3, Without, default};
+use crate::chunk::chunk_manager::MeshGenerationPriority;
+
+const CHUNKS_MESHED_PER_TICK: usize = 24;
 
 impl Chunk {
     pub fn generate_at(world_offset: [i32; 2]) -> Self {
@@ -93,14 +96,19 @@ impl Chunk {
     }
 }
 
-pub fn insert_chunk_mesh(
-    query: Query<(Entity, &Chunk), Without<Mesh3d>>,
+pub(super) fn insert_chunk_mesh(
+    query: Query<(Entity, &Chunk, &MeshGenerationPriority), Without<Mesh3d>>,
     mut meshes: ResMut<Assets<Mesh>>,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut commands: Commands,
 ) {
-    for (entity, chunk) in query {
+    let selection = query
+        .iter()
+        .sort_by::<&MeshGenerationPriority>(|a, b| a.0.total_cmp(&b.0))
+        .take(CHUNKS_MESHED_PER_TICK);
+
+    for (entity, chunk, _) in selection {
         let material = materials.add(StandardMaterial {
             base_color_texture: Some(
                 asset_server.load("textures/grass/Grass008_2K-PNG_Color.png"),
@@ -114,6 +122,7 @@ pub fn insert_chunk_mesh(
         let cube_mesh_handle: Handle<Mesh> = meshes.add(chunk.generate_mesh());
         commands
             .entity(entity)
-            .insert((Mesh3d(cube_mesh_handle), MeshMaterial3d(material), NotShadowCaster));
+            .insert((Mesh3d(cube_mesh_handle), MeshMaterial3d(material), NotShadowCaster))
+            .remove::<MeshGenerationPriority>();
     }
 }

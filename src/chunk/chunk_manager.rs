@@ -1,7 +1,8 @@
 use crate::chunk::chunk_loader::ChunkLoader;
 use crate::chunk::{CHUNK_SIZE_METERS, Chunk, ToUnload};
-use bevy::prelude::{Commands, Entity, Query, ResMut, Resource};
+use bevy::prelude::{Commands, Component, Entity, Query, ResMut, Resource};
 use std::collections::{HashMap, HashSet};
+use std::collections::hash_map::Entry;
 
 #[derive(Resource)]
 pub struct ChunkManager {
@@ -27,13 +28,16 @@ impl ChunkManager {
         chunk.height_at(x % CHUNK_SIZE_METERS as f32, z % CHUNK_SIZE_METERS as f32)
     }
 
-    fn load_chunk(&mut self, commands: &mut Commands, chunk_pos: (i32, i32)) {
+    fn load_chunk(&mut self, commands: &mut Commands, chunk_pos: (i32, i32), priority: f32) {
         self.chunks.entry(chunk_pos).or_insert_with(|| {
             commands
-                .spawn(Chunk::generate_at([
-                    chunk_pos.0 * CHUNK_SIZE_METERS as i32,
-                    chunk_pos.1 * CHUNK_SIZE_METERS as i32,
-                ]))
+                .spawn((
+                    Chunk::generate_at([
+                        chunk_pos.0 * CHUNK_SIZE_METERS as i32,
+                        chunk_pos.1 * CHUNK_SIZE_METERS as i32,
+                    ]),
+                    MeshGenerationPriority(priority),
+                ))
                 .id()
         });
     }
@@ -51,22 +55,39 @@ fn distance(from: (i32, i32), to: (i32, i32)) -> f32 {
     ((dx * dx + dz * dz) as f32).sqrt()
 }
 
+#[derive(Component)]
+pub(super) struct MeshGenerationPriority(pub(super) f32);
+
 pub(super) fn load_chunks(
     query: Query<&ChunkLoader>,
     mut chunks: ResMut<ChunkManager>,
     mut commands: Commands,
 ) {
+    let mut schedule_load = HashMap::new();
+
     // load (if not yet loaded) all chunks nearby camera
     for loader in query {
         let bounds_hw = (loader.loading_threshold / CHUNK_SIZE_METERS as f32).ceil() as i32;
         for dx in -bounds_hw..=bounds_hw {
             for dz in -bounds_hw..=bounds_hw {
                 let chunk_pos = (loader.chunk_position.0 + dx, loader.chunk_position.1 + dz);
-                if distance(chunk_pos, loader.chunk_position) <= loader.loading_threshold {
-                    chunks.load_chunk(&mut commands, chunk_pos);
+                let dis = distance(chunk_pos, loader.chunk_position);
+                if dis <= loader.loading_threshold {
+                    match schedule_load.entry(chunk_pos) {
+                        Entry::Vacant(e) => {
+                            e.insert(dis);
+                        }
+                        Entry::Occupied(mut e) => {
+                            e.insert(dis.min(*e.get()));
+                        }
+                    }
                 }
             }
         }
+    }
+
+    for (chunk_pos, priority) in schedule_load {
+        chunks.load_chunk(&mut commands, chunk_pos, priority);
     }
 }
 
