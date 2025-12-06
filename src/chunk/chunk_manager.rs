@@ -1,6 +1,6 @@
 use crate::chunk::chunk_loader::ChunkLoader;
 use crate::chunk::{CHUNK_SIZE_METERS, Chunk, ToUnload};
-use bevy::prelude::{Commands, Component, Entity, Query, ResMut, Resource};
+use bevy::prelude::{Commands, Component, Entity, Query, ResMut, Resource, Transform};
 use std::collections::{HashMap, HashSet};
 use std::collections::hash_map::Entry;
 use crate::animation::FadeOutAnimation;
@@ -50,30 +50,43 @@ impl ChunkManager {
     }
 }
 
-fn distance(from: (i32, i32), to: (i32, i32)) -> f32 {
-    let dx = (to.0 - from.0) * CHUNK_SIZE_METERS as i32;
-    let dz = (to.1 - from.1) * CHUNK_SIZE_METERS as i32;
-    ((dx * dx + dz * dz) as f32).sqrt()
+fn distance(from: (f32, f32), to: (f32, f32)) -> f32 {
+    let dx = to.0 - from.0;
+    let dz = to.1 - from.1;
+    (dx * dx + dz * dz).sqrt() * CHUNK_SIZE_METERS as f32
 }
 
 #[derive(Component)]
 pub(super) struct MeshGenerationPriority(pub(super) f32);
 
+fn get_transform_chunk_pos(transform: &Transform) -> (f32, f32) {
+    (
+        transform.translation.x / (CHUNK_SIZE_METERS as f32),
+        transform.translation.z / (CHUNK_SIZE_METERS as f32),
+    )
+}
+
+fn center_chunk_pos(pos: (i32, i32)) -> (f32, f32) {
+    (pos.0 as f32 + 0.5, pos.1 as f32 + 0.5)
+}
+
 pub(super) fn load_chunks(
-    query: Query<&ChunkLoader>,
+    query: Query<(&ChunkLoader, &Transform)>,
     mut chunks: ResMut<ChunkManager>,
     mut commands: Commands,
 ) {
     let mut schedule_load = HashMap::new();
 
     // load (if not yet loaded) all chunks nearby camera
-    for loader in query {
-        let Some(chunk_position) = loader.chunk_position else { continue };
-        let bounds_hw = (loader.loading_threshold / CHUNK_SIZE_METERS as f32).ceil() as i32;
+    for (loader, loader_transform) in query {
+        let loader_position = get_transform_chunk_pos(loader_transform);
+        let (loader_x_i32, loader_z_i32) = (loader_position.0 as i32, loader_position.1 as i32);
+        let bounds_hw = (loader.loading_threshold / CHUNK_SIZE_METERS as f32).ceil() as i32 + 1;
+
         for dx in -bounds_hw..=bounds_hw {
             for dz in -bounds_hw..=bounds_hw {
-                let chunk_pos = (chunk_position.0 + dx, chunk_position.1 + dz);
-                let dis = distance(chunk_pos, chunk_position);
+                let chunk_pos = (loader_x_i32 + dx, loader_z_i32 + dz);
+                let dis = distance(center_chunk_pos(chunk_pos), loader_position);
                 if dis <= loader.loading_threshold {
                     match schedule_load.entry(chunk_pos) {
                         Entry::Vacant(e) => {
@@ -94,16 +107,16 @@ pub(super) fn load_chunks(
 }
 
 pub(super) fn unload_chunks(
-    query: Query<&ChunkLoader>,
+    query: Query<(&ChunkLoader, &Transform)>,
     mut chunks: ResMut<ChunkManager>,
     mut commands: Commands,
 ) {
     let mut schedule_unload = HashSet::new();
     // unload all chunks too far from any camera
     'outer: for (chunk_pos, _) in &mut chunks.chunks {
-        for loader in query {
-            let Some(chunk_position) = loader.chunk_position else { continue };
-            if distance(*chunk_pos, chunk_position) <= loader.unloading_threshold {
+        for (loader, loader_transform) in query {
+            let chunk_position = get_transform_chunk_pos(loader_transform);
+            if distance(center_chunk_pos(*chunk_pos), chunk_position) <= loader.unloading_threshold {
                 continue 'outer;
             }
         }

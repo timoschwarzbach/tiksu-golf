@@ -43,7 +43,6 @@ impl Plugin for ChunkPlugin {
         .add_systems(Update, generation::insert_chunk_mesh)
         .add_systems(Update, chunk_manager::load_chunks)
         .add_systems(Update, chunk_manager::unload_chunks)
-        .add_systems(Update, chunk_loader::update_chunk_loader_position)
         .add_systems(PostUpdate, despawn_unloaded_chunks);
     }
 }
