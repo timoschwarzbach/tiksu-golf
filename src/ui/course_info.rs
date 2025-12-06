@@ -7,6 +7,9 @@ use bevy::shader::ShaderRef;
 use bevy::sprite_render::{Material2d, Material2dPlugin};
 use bevy::ui::Node;
 
+#[derive(Component)]
+pub struct FlagPole;
+
 pub(super) fn spawn_course_info(builder: &mut ChildSpawnerCommands) {
     builder.spawn((Node {
         min_width: px(100),
@@ -53,6 +56,7 @@ fn setup(
 
     // spawn 2d flag
     commands.spawn((
+        FlagPole,
         Mesh2d(meshes.add(generate_mesh())),
         MeshMaterial2d(materials.add(FlagMaterial {
             color: LinearRgba::WHITE,
