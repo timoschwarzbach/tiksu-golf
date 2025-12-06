@@ -21,7 +21,7 @@ impl Plugin for FlagPolePlugin {
 }
 
 #[derive(Component)]
-struct FlagPole;
+pub struct FlagPole;
 
 fn spawn_flag_pole(
     mut commands: Commands,

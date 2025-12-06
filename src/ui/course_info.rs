@@ -8,7 +8,7 @@ use bevy::sprite_render::{Material2d, Material2dPlugin};
 use bevy::ui::Node;
 
 #[derive(Component)]
-pub struct FlagPole;
+struct FlagPole;
 
 pub(super) fn spawn_course_info(builder: &mut ChildSpawnerCommands) {
     builder.spawn((Node {
