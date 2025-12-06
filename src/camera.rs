@@ -1,4 +1,4 @@
-use crate::chunk::chunk_loader::ChunkLoader;
+use crate::{chunk::chunk_loader::ChunkLoader, state::state::AppState};
 use bevy::{
     core_pipeline::Skybox,
     prelude::*,
@@ -8,8 +8,13 @@ use bevy::{
 pub struct CameraPlugin;
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_camera)
-            .add_systems(Update, (input_handler, asset_loaded));
+        app.add_systems(Startup, spawn_camera).add_systems(
+            Update,
+            (
+                input_handler.run_if(in_state(AppState::Debug)),
+                asset_loaded,
+            ),
+        );
     }
 }
 

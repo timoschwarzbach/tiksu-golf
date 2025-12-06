@@ -1,20 +1,23 @@
-use crate::camera::ActiveCamera;
 use crate::chunk::chunk_loader::ChunkLoader;
+use crate::{camera::ActiveCamera, state::state::AppState};
 use avian3d::prelude::{Collider, Friction, LinearDamping, LinearVelocity, RigidBody};
 use bevy::{color::palettes::css::WHITE, prelude::*};
 
 pub struct GolfballPlugin;
 impl Plugin for GolfballPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_golfball).add_systems(
-            Update,
-            (input_handler, input_handler_golfball, update_rigid_mode),
-        );
+        app.add_systems(Startup, spawn_golfball)
+            .add_systems(
+                Update,
+                (input_handler, input_handler_golfball, update_rigid_mode),
+            )
+            .add_systems(OnEnter(AppState::InShot), set_ball_active)
+            .add_systems(OnExit(AppState::InShot), set_ball_inactive);
     }
 }
 
 #[derive(Component)]
-struct Golfball {
+pub struct Golfball {
     active: bool,
 }
 
@@ -80,4 +83,12 @@ fn update_rigid_mode(mut commands: Commands, query: Query<(Entity, &Golfball, &R
                 !golfball.active && ridgid_body.ne(&RigidBody::Static)
             });
     }
+}
+
+fn set_ball_active(mut golfball: Single<&mut Golfball>) {
+    golfball.active = true
+}
+
+fn set_ball_inactive(mut golfball: Single<&mut Golfball>) {
+    golfball.active = false
 }
