@@ -3,6 +3,7 @@ use crate::chunk::{CHUNK_SIZE_METERS, Chunk, ToUnload};
 use bevy::prelude::{Commands, Component, Entity, Query, ResMut, Resource};
 use std::collections::{HashMap, HashSet};
 use std::collections::hash_map::Entry;
+use crate::animation::FadeOutAnimation;
 
 #[derive(Resource)]
 pub struct ChunkManager {
@@ -44,7 +45,7 @@ impl ChunkManager {
 
     fn unload_chunk(&mut self, commands: &mut Commands, chunk_pos: (i32, i32)) {
         if let Some(chunk) = self.chunks.remove(&chunk_pos) {
-            commands.entity(chunk).insert(ToUnload);
+            commands.entity(chunk).insert((ToUnload, FadeOutAnimation::new(0.25)));
         }
     }
 }
@@ -67,11 +68,12 @@ pub(super) fn load_chunks(
 
     // load (if not yet loaded) all chunks nearby camera
     for loader in query {
+        let Some(chunk_position) = loader.chunk_position else { continue };
         let bounds_hw = (loader.loading_threshold / CHUNK_SIZE_METERS as f32).ceil() as i32;
         for dx in -bounds_hw..=bounds_hw {
             for dz in -bounds_hw..=bounds_hw {
-                let chunk_pos = (loader.chunk_position.0 + dx, loader.chunk_position.1 + dz);
-                let dis = distance(chunk_pos, loader.chunk_position);
+                let chunk_pos = (chunk_position.0 + dx, chunk_position.1 + dz);
+                let dis = distance(chunk_pos, chunk_position);
                 if dis <= loader.loading_threshold {
                     match schedule_load.entry(chunk_pos) {
                         Entry::Vacant(e) => {
@@ -100,7 +102,8 @@ pub(super) fn unload_chunks(
     // unload all chunks too far from any camera
     'outer: for (chunk_pos, _) in &mut chunks.chunks {
         for loader in query {
-            if distance(loader.chunk_position, *chunk_pos) <= loader.unloading_threshold {
+            let Some(chunk_position) = loader.chunk_position else { continue };
+            if distance(*chunk_pos, chunk_position) <= loader.unloading_threshold {
                 continue 'outer;
             }
         }

@@ -7,7 +7,7 @@ const CHUNK_SIZE_METERS_F32: f32 = CHUNK_SIZE_METERS as f32;
 pub struct ChunkLoader {
     pub loading_threshold: f32,
     pub unloading_threshold: f32,
-    pub chunk_position: (i32, i32),
+    pub chunk_position: Option<(i32, i32)>,
 }
 
 impl ChunkLoader {
@@ -15,7 +15,7 @@ impl ChunkLoader {
         ChunkLoader {
             loading_threshold: render_distance,
             unloading_threshold: render_distance + CHUNK_SIZE_METERS_F32,
-            chunk_position: (0, 0),
+            chunk_position: None,
         }
     }
 }
@@ -24,9 +24,9 @@ pub(super) fn update_chunk_loader_position(
     query: Query<(&mut ChunkLoader, &Transform), Changed<Transform>>,
 ) {
     for (mut loader, transform) in query {
-        loader.chunk_position = (
+        loader.chunk_position = Some((
             (transform.translation.x / CHUNK_SIZE_METERS_F32).floor() as i32,
             (transform.translation.z / CHUNK_SIZE_METERS_F32).floor() as i32,
-        );
+        ));
     }
 }
