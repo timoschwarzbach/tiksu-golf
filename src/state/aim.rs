@@ -8,12 +8,18 @@ use crate::camera::ActiveCamera;
 use crate::golfball::Golfball;
 use crate::state::state::AppState;
 use crate::ui::course_info::FlagPole;
+use crate::ui::shoot_challange::AimChallangeState;
 
 pub struct AimStatePlugin;
 impl Plugin for AimStatePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(PostStartup, set_aim_state.run_if(in_state(AppState::Aim)))
-            .add_systems(Update, (input_handler).run_if(in_state(AppState::Aim)))
+            .add_systems(
+                Update,
+                (input_handler)
+                    .run_if(in_state(AppState::Aim))
+                    .run_if(in_state(AimChallangeState::Idle)),
+            )
             .add_systems(OnEnter(AppState::Aim), set_aim_state)
             .add_systems(OnExit(AppState::Aim), unset_aim_state);
     }
