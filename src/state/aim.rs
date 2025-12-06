@@ -5,6 +5,7 @@ use bevy::{
 };
 
 use crate::camera::ActiveCamera;
+use crate::objects::flag_pole::FlagPole;
 use crate::objects::golfball::Golfball;
 use crate::state::state::AppState;
 use crate::ui::course_info::FlagPole;
