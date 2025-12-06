@@ -12,7 +12,11 @@ use crate::{
     camera::CameraPlugin,
     chunk::ChunkPlugin,
     golfball::GolfballPlugin,
-    state::{aim::AimStatePlugin, state::AppState},
+    state::{
+        aim::AimStatePlugin,
+        state::{AppState, debug_state_change_input_handler},
+    },
+    ui::shoot_challange::ShootChallangePlugin,
 };
 use avian3d::PhysicsPlugins;
 use bevy::prelude::*;
@@ -27,10 +31,12 @@ fn main() {
             ui::ui::UiPlugin,
             animation::AnimationPlugin,
             AimStatePlugin,
+            ShootChallangePlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Startup, setup)
         .add_systems(Update, create_collider_from_mesh)
+        .add_systems(Update, debug_state_change_input_handler) // change game states for debug
         .run();
 }
 
