@@ -97,9 +97,6 @@ fn input_handler(
         aim_state.zoomed = true;
     }
     if keyboard_input.just_pressed(KeyCode::ArrowDown) {
-        aim_state.zoomed = true;
-    }
-    if keyboard_input.just_pressed(KeyCode::ArrowDown) {
-        aim_state.zoomed = !aim_state.zoomed;
+        aim_state.zoomed = false;
     }
 }
