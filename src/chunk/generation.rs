@@ -6,7 +6,7 @@ use bevy::light::NotShadowCaster;
 use bevy::math::Dir3;
 use bevy::mesh::{Indices, Mesh, Mesh3d, Meshable, PrimitiveTopology};
 use bevy::pbr::{MeshMaterial3d, StandardMaterial};
-use bevy::prelude::{AssetServer, Commands, Entity, Query, Res, ResMut, Vec3, Without, default, AlphaMode, Color, Transform, Plane3d, children};
+use bevy::prelude::{AssetServer, Commands, Entity, Query, Res, ResMut, Vec3, Without, default, AlphaMode, Color, Transform, Plane3d};
 use crate::animation::FadeInAnimation;
 use crate::chunk::chunk_manager::MeshGenerationPriority;
 
@@ -135,7 +135,8 @@ pub(super) fn insert_chunk_mesh(
         if chunk.elevation.iter().any(|row| row.iter().any(|height| *height < WATER_HEIGHT)) {
             let x = chunk.world_offset[0] as f32 + CHUNK_SIZE_METERS as f32 * 0.5;
             let z = chunk.world_offset[1] as f32 + CHUNK_SIZE_METERS as f32 * 0.5;
-            commands.spawn((
+
+            let child = commands.spawn((
                 Transform::from_xyz(x, -5.0, z),
                 Mesh3d(meshes.add(Plane3d::default().mesh().size(CHUNK_SIZE_METERS as f32, CHUNK_SIZE_METERS as f32).normal(Dir3::Y))),
                 MeshMaterial3d(materials.add(StandardMaterial {
@@ -145,7 +146,11 @@ pub(super) fn insert_chunk_mesh(
                     ..default()
                 })),
                 NotShadowCaster,
-            ));
+            )).id();
+
+            commands
+                .entity(entity)
+                .add_child(child);
         }
     }
 }
