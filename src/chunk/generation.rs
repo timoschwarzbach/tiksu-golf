@@ -3,13 +3,15 @@ use crate::generation::TerrainGenerator;
 use crate::generation::grasslands::GrasslandsGenerator;
 use bevy::asset::{Assets, Handle, RenderAssetUsages};
 use bevy::light::NotShadowCaster;
-use bevy::mesh::{Indices, Mesh, Mesh3d, PrimitiveTopology};
+use bevy::math::Dir3;
+use bevy::mesh::{Indices, Mesh, Mesh3d, Meshable, PrimitiveTopology};
 use bevy::pbr::{MeshMaterial3d, StandardMaterial};
-use bevy::prelude::{AssetServer, Commands, Entity, Query, Res, ResMut, Vec3, Without, default, AlphaMode, Color};
+use bevy::prelude::{AssetServer, Commands, Entity, Query, Res, ResMut, Vec3, Without, default, AlphaMode, Color, Transform, Plane3d, children};
 use crate::animation::FadeInAnimation;
 use crate::chunk::chunk_manager::MeshGenerationPriority;
 
 const CHUNKS_MESHED_PER_TICK: usize = 24;
+const WATER_HEIGHT: f32 = -4.0;
 
 impl Chunk {
     pub fn generate_at(world_offset: [i32; 2]) -> Self {
@@ -110,6 +112,7 @@ pub(super) fn insert_chunk_mesh(
         .take(CHUNKS_MESHED_PER_TICK);
 
     for (entity, chunk, _) in selection {
+        // terrain height mesh
         let material = materials.add(StandardMaterial {
             base_color_texture: Some(
                 asset_server.load("textures/grass/Grass008_2K-PNG_Color.png"),
@@ -122,10 +125,27 @@ pub(super) fn insert_chunk_mesh(
             base_color: Color::srgba(1.0, 1.0, 1.0, 0.0),
             ..default()
         });
-        let cube_mesh_handle: Handle<Mesh> = meshes.add(chunk.generate_mesh());
+        let terrain_mesh_handle: Handle<Mesh> = meshes.add(chunk.generate_mesh());
         commands
             .entity(entity)
-            .insert((Mesh3d(cube_mesh_handle), MeshMaterial3d(material), NotShadowCaster, FadeInAnimation::new(0.25)))
+            .insert((Mesh3d(terrain_mesh_handle), MeshMaterial3d(material), NotShadowCaster, FadeInAnimation::new(0.25)))
             .remove::<MeshGenerationPriority>();
+
+        // water plane mesh
+        if chunk.elevation.iter().any(|row| row.iter().any(|height| *height < WATER_HEIGHT)) {
+            let x = chunk.world_offset[0] as f32 + CHUNK_SIZE_METERS as f32 * 0.5;
+            let z = chunk.world_offset[1] as f32 + CHUNK_SIZE_METERS as f32 * 0.5;
+            commands.spawn((
+                Transform::from_xyz(x, -5.0, z),
+                Mesh3d(meshes.add(Plane3d::default().mesh().size(CHUNK_SIZE_METERS as f32, CHUNK_SIZE_METERS as f32).normal(Dir3::Y))),
+                MeshMaterial3d(materials.add(StandardMaterial {
+                    base_color: Color::srgba(0.13, 0.59, 0.84, 0.6),
+                    reflectance: 0.1,
+                    alpha_mode: AlphaMode::Blend,
+                    ..default()
+                })),
+                NotShadowCaster,
+            ));
+        }
     }
 }
