@@ -4,6 +4,8 @@ use crate::chunk::{CHUNK_SIZE_METERS, Chunk, ToUnload};
 use bevy::prelude::{Commands, Component, Entity, Query, ResMut, Resource, Transform};
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
+use std::collections::hash_map::Entry;
+use crate::animation::LiftDownAnimation;
 
 #[derive(Resource)]
 pub struct ChunkManager {
@@ -45,9 +47,7 @@ impl ChunkManager {
 
     fn unload_chunk(&mut self, commands: &mut Commands, chunk_pos: (i32, i32)) {
         if let Some(chunk) = self.chunks.remove(&chunk_pos) {
-            commands
-                .entity(chunk)
-                .insert((ToUnload, FadeOutAnimation::new(0.25)));
+            commands.entity(chunk).insert((ToUnload, LiftDownAnimation::new(0.0, 0.25)));
         }
     }
 }
@@ -118,8 +118,7 @@ pub(super) fn unload_chunks(
     'outer: for (chunk_pos, _) in &mut chunks.chunks {
         for (loader, loader_transform) in query {
             let chunk_position = get_transform_chunk_pos(loader_transform);
-            if distance(center_chunk_pos(*chunk_pos), chunk_position) <= loader.unloading_threshold
-            {
+            if distance(center_chunk_pos(*chunk_pos), chunk_position) <= loader.unloading_threshold {
                 continue 'outer;
             }
         }

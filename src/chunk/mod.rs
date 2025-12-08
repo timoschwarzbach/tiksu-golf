@@ -2,7 +2,6 @@ pub mod chunk_loader;
 pub mod chunk_manager;
 pub mod generation;
 
-use crate::animation::FadeOutAnimation;
 use crate::chunk::chunk_manager::ChunkManager;
 use crate::chunk::generation::WaterExtension;
 use bevy::app::{App, Plugin, Startup, Update};
@@ -11,7 +10,7 @@ use bevy::prelude::{
     Commands, Component, Entity, MaterialPlugin, PostUpdate, Query, StandardMaterial, With, Without,
 };
 use bevy::prelude::{Commands, Component, Entity, PostUpdate, Query, With, Without};
-use crate::animation::FadeOutAnimation;
+use crate::animation::{FadeOutAnimation, LiftDownAnimation};
 use crate::generation::Prop;
 
 pub(self) const CHUNK_SIZE_METERS: usize = 32;
@@ -62,10 +61,7 @@ impl Plugin for ChunkPlugin {
 #[derive(Component)]
 struct ToUnload;
 
-fn despawn_unloaded_chunks(
-    query: Query<Entity, (With<ToUnload>, Without<FadeOutAnimation>)>,
-    mut commands: Commands,
-) {
+fn despawn_unloaded_chunks(query: Query<Entity, (With<ToUnload>, Without<FadeOutAnimation>, Without<LiftDownAnimation>)>, mut commands: Commands) {
     for chunk in query {
         commands.entity(chunk).despawn();
     }
