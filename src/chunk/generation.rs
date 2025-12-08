@@ -1,7 +1,5 @@
-use crate::animation::FadeInAnimation;
-use crate::chunk::chunk_manager::MeshGenerationPriority;
 use crate::chunk::{CHUNK_FIDELITY, CHUNK_SIZE_METERS, Chunk};
-use crate::generation::TerrainGenerator;
+use crate::generation::{Prop, TerrainGenerator};
 use crate::generation::grasslands::GrasslandsGenerator;
 use bevy::asset::{Assets, Handle, RenderAssetUsages};
 use bevy::image::{
@@ -17,6 +15,10 @@ use bevy::prelude::{
 };
 use bevy::render::render_resource::AsBindGroup;
 use bevy::shader::ShaderRef;
+use bevy::pbr::{MeshMaterial3d, StandardMaterial};
+use bevy::prelude::{AssetServer, Commands, Entity, Query, Res, ResMut, Vec3, Without, default, AlphaMode, Color, Transform, Plane3d, Cuboid};
+use crate::animation::FadeInAnimation;
+use crate::chunk::chunk_manager::MeshGenerationPriority;
 
 const CHUNKS_MESHED_PER_TICK: usize = 24;
 const WATER_HEIGHT: f32 = -4.0;
@@ -38,9 +40,12 @@ impl Chunk {
             }
         }
 
+        let props = generator.props_in_chunk((world_offset[0], world_offset[1]));
+
         Chunk {
             world_offset,
             elevation,
+            props,
         }
     }
 
@@ -140,7 +145,9 @@ pub(super) fn insert_chunk_mesh(
     for (entity, chunk, _) in selection {
         // terrain height mesh
         let material = materials.add(StandardMaterial {
-            base_color_texture: Some(asset_server.load("textures/grass/Grass008_2K-PNG_Color.png")),
+            base_color_texture: Some(
+                asset_server.load("textures/grass/Grass008_2K-PNG_Color.png"),
+            ),
             normal_map_texture: Some(
                 asset_server.load("textures/grass/Grass008_2K-PNG_NormalGL.png"),
             ),
@@ -164,20 +171,11 @@ pub(super) fn insert_chunk_mesh(
         let terrain_mesh_handle: Handle<Mesh> = meshes.add(chunk.generate_mesh());
         commands
             .entity(entity)
-            .insert((
-                Mesh3d(terrain_mesh_handle),
-                MeshMaterial3d(material),
-                NotShadowCaster,
-                FadeInAnimation::new(0.25),
-            ))
+            .insert((Mesh3d(terrain_mesh_handle), MeshMaterial3d(material), NotShadowCaster, FadeInAnimation::new(0.25)))
             .remove::<MeshGenerationPriority>();
 
         // water plane mesh
-        if chunk
-            .elevation
-            .iter()
-            .any(|row| row.iter().any(|height| *height < WATER_HEIGHT))
-        {
+        if chunk.elevation.iter().any(|row| row.iter().any(|height| *height < WATER_HEIGHT)) {
             let x = chunk.world_offset[0] as f32 + CHUNK_SIZE_METERS as f32 * 0.5;
             let z = chunk.world_offset[1] as f32 + CHUNK_SIZE_METERS as f32 * 0.5;
 
@@ -209,6 +207,22 @@ pub(super) fn insert_chunk_mesh(
                 ))
                 .id();
             commands.entity(entity).add_child(child);
+        }
+        // props
+        for Prop { position: (px, py, pz), .. } in &chunk.props {
+            let child = commands.spawn((
+                Transform::from_xyz(chunk.world_offset[0] as f32 + *px, *py + 9.0, chunk.world_offset[1] as f32 + *pz),
+                Mesh3d(meshes.add(Cuboid::new(1.0, 20.0, 1.0))),
+                MeshMaterial3d(materials.add(StandardMaterial {
+                    base_color: Color::srgb(0.84, 0.59, 0.13),
+                    reflectance: 0.04,
+                    ..default()
+                })),
+            )).id();
+
+            commands
+                .entity(entity)
+                .add_child(child);
         }
     }
 }
