@@ -8,7 +8,7 @@ use bevy::math::Dir3;
 use bevy::mesh::{Indices, Mesh, Mesh3d, Meshable, PrimitiveTopology};
 use bevy::pbr::{MeshMaterial3d, StandardMaterial};
 use bevy::prelude::{AssetServer, Commands, Entity, Query, Res, ResMut, Vec3, Without, default, AlphaMode, Color, Transform, Plane3d, Cuboid, SceneRoot};
-use crate::animation::FadeInAnimation;
+use crate::animation::LiftUpAnimation;
 use crate::chunk::chunk_manager::MeshGenerationPriority;
 
 const CHUNKS_MESHED_PER_TICK: usize = 24;
@@ -125,14 +125,21 @@ pub(super) fn insert_chunk_mesh(
                 asset_server.load("textures/grass/Grass008_2K-PNG_NormalGL.png"),
             ),
             reflectance: 0.06,
-            alpha_mode: AlphaMode::Blend,
-            base_color: Color::srgba(1.0, 1.0, 1.0, 0.0),
+            //alpha_mode: AlphaMode::Blend,
+            //base_color: Color::srgba(1.0, 1.0, 1.0, 0.0),
             ..default()
         });
         let terrain_mesh_handle: Handle<Mesh> = meshes.add(chunk.generate_mesh());
         commands
             .entity(entity)
-            .insert((Mesh3d(terrain_mesh_handle), MeshMaterial3d(material), NotShadowCaster, FadeInAnimation::new(0.25)))
+            .insert((
+                Mesh3d(terrain_mesh_handle),
+                MeshMaterial3d(material),
+                NotShadowCaster,
+                // FadeInAnimation::new(0.25),
+                Transform::from_xyz(0.0, -100.0, 0.0),
+                LiftUpAnimation::new(0.0, 0.25),
+            ))
             .remove::<MeshGenerationPriority>();
 
         // water plane mesh
