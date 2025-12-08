@@ -5,7 +5,8 @@ pub mod generation;
 use crate::chunk::chunk_manager::ChunkManager;
 use bevy::app::{App, Plugin, Startup, Update};
 use bevy::prelude::{Commands, Component, Entity, PostUpdate, Query, With, Without};
-use crate::animation::FadeOutAnimation;
+use crate::animation::{FadeOutAnimation, LiftDownAnimation};
+use crate::generation::Prop;
 
 pub(self) const CHUNK_SIZE_METERS: usize = 32;
 pub(self) const CHUNK_FIDELITY: usize = CHUNK_SIZE_METERS * 1;
@@ -14,6 +15,7 @@ pub(self) const CHUNK_FIDELITY: usize = CHUNK_SIZE_METERS * 1;
 pub struct Chunk {
     world_offset: [i32; 2],
     elevation: Box<[[f32; CHUNK_FIDELITY + 1]; CHUNK_FIDELITY + 1]>,
+    props: Vec<Prop>,
 }
 
 impl Chunk {
@@ -50,7 +52,7 @@ impl Plugin for ChunkPlugin {
 #[derive(Component)]
 struct ToUnload;
 
-fn despawn_unloaded_chunks(query: Query<Entity, (With<ToUnload>, Without<FadeOutAnimation>)>, mut commands: Commands) {
+fn despawn_unloaded_chunks(query: Query<Entity, (With<ToUnload>, Without<FadeOutAnimation>, Without<LiftDownAnimation>)>, mut commands: Commands) {
     for chunk in query {
         commands.entity(chunk).despawn();
     }
