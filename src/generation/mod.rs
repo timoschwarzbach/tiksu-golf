@@ -7,6 +7,7 @@ pub enum PropType {
 pub struct Prop {
     pub prop_type: PropType,
     pub position: (f32, f32, f32),
+    pub seed: u32,
 }
 
 pub trait TerrainGenerator {

@@ -2,7 +2,7 @@ use crate::generation::{Prop, PropType, TerrainGenerator};
 use noise::NoiseFn;
 use noise::Perlin;
 use rand::rngs::StdRng;
-use rand::{Rng, SeedableRng};
+use rand::{Rng, RngCore, SeedableRng};
 /* Pipeline (one time):
  * 1. generate course / routes (single fixed line for now)
  *   - start and end location
@@ -61,9 +61,12 @@ impl TerrainGenerator for GrasslandsGenerator {
             let y = self.height_at(x + offset.0 as f32, z + offset.1 as f32);
 
             if y > -3.0 {
+                let seed = random.next_u32();
+
                 result.push(Prop {
                     prop_type: PropType::Tree,
                     position: (x, y, z),
+                    seed,
                 });
             }
         }
