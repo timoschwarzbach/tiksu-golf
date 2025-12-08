@@ -29,7 +29,7 @@ fn spawn_camera(mut commands: Commands, asset_server: Res<AssetServer>) {
         Camera3d::default(),
         camera_transform,
         ActiveCamera,
-        ChunkLoader::new(512.0),
+        ChunkLoader::new(768.0),
         Skybox {
             image: skybox_handle.clone(),
             brightness: 1000.0,
