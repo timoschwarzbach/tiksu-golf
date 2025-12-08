@@ -1,7 +1,8 @@
-use crate::generation::TerrainGenerator;
+use crate::generation::{Prop, PropType, TerrainGenerator};
 use noise::NoiseFn;
 use noise::Perlin;
-
+use rand::rngs::StdRng;
+use rand::{Rng, SeedableRng};
 /* Pipeline (one time):
  * 1. generate course / routes (single fixed line for now)
  *   - start and end location
@@ -44,5 +45,29 @@ impl GrasslandsGenerator {
 impl TerrainGenerator for GrasslandsGenerator {
     fn height_at(&self, x: f32, y: f32) -> f32 {
         self.local_height_at(x as f64, y as f64) as f32
+    }
+
+    fn props_in_chunk(&self, offset: (i32, i32)) -> Vec<Prop> {
+        // TODO: don't hardcode chunk size and water height
+        let approx_tree_count = ((self.perlin.get([offset.0 as f64 / 200.0, offset.1 as f64 / 200.0]) + 0.1) * 6.0).max(0.0) as usize;
+        let seed = ((offset.0 as u64) << 16) ^ (offset.1 as u64);
+        let mut random = StdRng::seed_from_u64(seed);
+
+        let mut result = Vec::new();
+
+        for _candidate in 0..approx_tree_count {
+            let x = random.random_range(0.0..32.0);
+            let z = random.random_range(0.0..32.0);
+            let y = self.height_at(x + offset.0 as f32, z + offset.1 as f32);
+
+            if y > -3.0 {
+                result.push(Prop {
+                    prop_type: PropType::Tree,
+                    position: (x, y, z),
+                });
+            }
+        }
+
+        result
     }
 }
