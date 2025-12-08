@@ -16,7 +16,7 @@ use crate::{
         aim::AimStatePlugin,
         state::{AppState, debug_state_change_input_handler},
     },
-    ui::shoot_challange::ShootChallangePlugin,
+    ui::shoot_challenge::ShootChallengePlugin,
 };
 use avian3d::PhysicsPlugins;
 use bevy::prelude::*;
@@ -31,7 +31,7 @@ fn main() {
             ui::ui::UiPlugin,
             animation::AnimationPlugin,
             AimStatePlugin,
-            ShootChallangePlugin,
+            ShootChallengePlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Startup, setup)
