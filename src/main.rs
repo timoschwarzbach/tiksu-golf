@@ -11,6 +11,7 @@ use crate::{
     golfball::GolfballPlugin,
 };
 use avian3d::PhysicsPlugins;
+use bevy::light::CascadeShadowConfigBuilder;
 use bevy::prelude::*;
 
 fn main() {
@@ -27,9 +28,14 @@ fn setup(mut commands: Commands) {
     commands.spawn((
         DirectionalLight {
             color: Color::srgb(0.98, 0.95, 0.82),
-            shadows_enabled: true, // TODO: allow mesh to receive but not cast shadows
+            shadows_enabled: true,
             ..default()
         },
+        CascadeShadowConfigBuilder {
+            maximum_distance: 1000.0, // Shadows stop at 100 units
+            first_cascade_far_bound: 20.0, // First split near camera
+            ..default()
+        }.build(),
         Transform::from_xyz(0.0, 0.0, 0.0).looking_at(Vec3::new(0.1, -0.1, 0.3), Vec3::Y),
     ));
 
