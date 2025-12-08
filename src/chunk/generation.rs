@@ -2,11 +2,12 @@ use crate::chunk::{CHUNK_FIDELITY, CHUNK_SIZE_METERS, Chunk};
 use crate::generation::{Prop, TerrainGenerator};
 use crate::generation::grasslands::GrasslandsGenerator;
 use bevy::asset::{Assets, Handle, RenderAssetUsages};
+use bevy::gltf::GltfAssetLabel;
 use bevy::light::NotShadowCaster;
 use bevy::math::Dir3;
 use bevy::mesh::{Indices, Mesh, Mesh3d, Meshable, PrimitiveTopology};
 use bevy::pbr::{MeshMaterial3d, StandardMaterial};
-use bevy::prelude::{AssetServer, Commands, Entity, Query, Res, ResMut, Vec3, Without, default, AlphaMode, Color, Transform, Plane3d, Cuboid};
+use bevy::prelude::{AssetServer, Commands, Entity, Query, Res, ResMut, Vec3, Without, default, AlphaMode, Color, Transform, Plane3d, Cuboid, SceneRoot};
 use crate::animation::FadeInAnimation;
 use crate::chunk::chunk_manager::MeshGenerationPriority;
 
@@ -159,13 +160,8 @@ pub(super) fn insert_chunk_mesh(
         // props
         for Prop { position: (px, py, pz), .. } in &chunk.props {
             let child = commands.spawn((
-                Transform::from_xyz(chunk.world_offset[0] as f32 + *px, *py + 9.0, chunk.world_offset[1] as f32 + *pz),
-                Mesh3d(meshes.add(Cuboid::new(1.0, 20.0, 1.0))),
-                MeshMaterial3d(materials.add(StandardMaterial {
-                    base_color: Color::srgb(0.84, 0.59, 0.13),
-                    reflectance: 0.04,
-                    ..default()
-                })),
+                Transform::from_xyz(chunk.world_offset[0] as f32 + *px, *py - 0.5, chunk.world_offset[1] as f32 + *pz).with_scale(Vec3::splat(0.04)),
+                SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset("model/pine_tree.glb"))),
             )).id();
 
             commands
