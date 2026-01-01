@@ -6,6 +6,7 @@ pub mod generation;
 mod objects;
 mod state;
 mod ui;
+mod animation;
 
 use crate::{
     add_chunk_collider::create_collider_from_mesh,
