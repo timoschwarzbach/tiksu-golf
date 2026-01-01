@@ -2,10 +2,15 @@ pub mod chunk_loader;
 pub mod chunk_manager;
 pub mod generation;
 
-use crate::chunk::chunk_manager::ChunkManager;
-use bevy::app::{App, Plugin, Startup, Update};
-use bevy::prelude::{Commands, Component, Entity, PostUpdate, Query, With, Without};
 use crate::animation::FadeOutAnimation;
+use crate::chunk::chunk_manager::ChunkManager;
+use crate::chunk::generation::WaterMaterial;
+use bevy::app::{App, Plugin, Startup, Update};
+use bevy::asset::Assets;
+use bevy::prelude::{
+    Commands, Component, Entity, MaterialPlugin, PostUpdate, Query, Res, ResMut, With, Without,
+};
+use bevy::time::Time;
 
 pub(self) const CHUNK_SIZE_METERS: usize = 32;
 pub(self) const CHUNK_FIDELITY: usize = CHUNK_SIZE_METERS * 1;
@@ -37,20 +42,25 @@ pub struct ChunkPlugin;
 
 impl Plugin for ChunkPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, |mut commands: Commands| {
-            commands.insert_resource(ChunkManager::new());
-        })
-        .add_systems(Update, generation::insert_chunk_mesh)
-        .add_systems(Update, chunk_manager::load_chunks)
-        .add_systems(Update, chunk_manager::unload_chunks)
-        .add_systems(PostUpdate, despawn_unloaded_chunks);
+        app.add_plugins(MaterialPlugin::<WaterMaterial>::default())
+            .add_systems(Startup, |mut commands: Commands| {
+                commands.insert_resource(ChunkManager::new());
+            })
+            .add_systems(Update, generation::insert_chunk_mesh)
+            .add_systems(Update, chunk_manager::load_chunks)
+            .add_systems(Update, chunk_manager::unload_chunks)
+            .add_systems(Update, generation::update_material_time)
+            .add_systems(PostUpdate, despawn_unloaded_chunks);
     }
 }
 
 #[derive(Component)]
 struct ToUnload;
 
-fn despawn_unloaded_chunks(query: Query<Entity, (With<ToUnload>, Without<FadeOutAnimation>)>, mut commands: Commands) {
+fn despawn_unloaded_chunks(
+    query: Query<Entity, (With<ToUnload>, Without<FadeOutAnimation>)>,
+    mut commands: Commands,
+) {
     for chunk in query {
         commands.entity(chunk).despawn();
     }

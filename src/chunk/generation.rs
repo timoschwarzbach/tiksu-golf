@@ -1,14 +1,20 @@
+use crate::animation::FadeInAnimation;
+use crate::chunk::chunk_manager::MeshGenerationPriority;
 use crate::chunk::{CHUNK_FIDELITY, CHUNK_SIZE_METERS, Chunk};
 use crate::generation::TerrainGenerator;
 use crate::generation::grasslands::GrasslandsGenerator;
 use bevy::asset::{Assets, Handle, RenderAssetUsages};
+use bevy::image::Image;
 use bevy::light::NotShadowCaster;
 use bevy::math::Dir3;
 use bevy::mesh::{Indices, Mesh, Mesh3d, Meshable, PrimitiveTopology};
 use bevy::pbr::{MeshMaterial3d, StandardMaterial};
-use bevy::prelude::{AssetServer, Commands, Entity, Query, Res, ResMut, Vec3, Without, default, AlphaMode, Color, Transform, Plane3d};
-use crate::animation::FadeInAnimation;
-use crate::chunk::chunk_manager::MeshGenerationPriority;
+use bevy::prelude::{
+    AlphaMode, Asset, AssetServer, Color, Commands, Entity, Material, Plane3d, Query, Reflect, Res,
+    ResMut, Time, Transform, Vec3, Without, default,
+};
+use bevy::render::render_resource::AsBindGroup;
+use bevy::shader::ShaderRef;
 
 const CHUNKS_MESHED_PER_TICK: usize = 24;
 const WATER_HEIGHT: f32 = -4.0;
@@ -99,11 +105,32 @@ impl Chunk {
     }
 }
 
+const SHADER_ASSET_PATH: &str = "shaders/water.wgsl";
+
+#[derive(Asset, AsBindGroup, Reflect, Debug, Clone, Default)]
+pub struct WaterMaterial {
+    #[texture(0)]
+    #[sampler(1)]
+    color_texture: Option<Handle<Image>>,
+    #[uniform(2)]
+    pub internal_time: f32,
+}
+
+impl Material for WaterMaterial {
+    fn vertex_shader() -> ShaderRef {
+        SHADER_ASSET_PATH.into()
+    }
+    fn fragment_shader() -> ShaderRef {
+        SHADER_ASSET_PATH.into()
+    }
+}
+
 pub(super) fn insert_chunk_mesh(
     query: Query<(Entity, &Chunk, &MeshGenerationPriority), Without<Mesh3d>>,
     mut meshes: ResMut<Assets<Mesh>>,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    mut water_material: ResMut<Assets<WaterMaterial>>,
     mut commands: Commands,
 ) {
     let selection = query
@@ -114,9 +141,7 @@ pub(super) fn insert_chunk_mesh(
     for (entity, chunk, _) in selection {
         // terrain height mesh
         let material = materials.add(StandardMaterial {
-            base_color_texture: Some(
-                asset_server.load("textures/grass/Grass008_2K-PNG_Color.png"),
-            ),
+            base_color_texture: Some(asset_server.load("textures/grass/Grass008_2K-PNG_Color.png")),
             normal_map_texture: Some(
                 asset_server.load("textures/grass/Grass008_2K-PNG_NormalGL.png"),
             ),
@@ -125,32 +150,53 @@ pub(super) fn insert_chunk_mesh(
             base_color: Color::srgba(1.0, 1.0, 1.0, 0.0),
             ..default()
         });
+        let water_material = water_material.add(WaterMaterial {
+            color_texture: Some(asset_server.load("textures/water/water0342.png")),
+            ..default()
+        });
         let terrain_mesh_handle: Handle<Mesh> = meshes.add(chunk.generate_mesh());
         commands
             .entity(entity)
-            .insert((Mesh3d(terrain_mesh_handle), MeshMaterial3d(material), NotShadowCaster, FadeInAnimation::new(0.25)))
+            .insert((
+                Mesh3d(terrain_mesh_handle),
+                MeshMaterial3d(material),
+                NotShadowCaster,
+                FadeInAnimation::new(0.25),
+            ))
             .remove::<MeshGenerationPriority>();
 
         // water plane mesh
-        if chunk.elevation.iter().any(|row| row.iter().any(|height| *height < WATER_HEIGHT)) {
+        if chunk
+            .elevation
+            .iter()
+            .any(|row| row.iter().any(|height| *height < WATER_HEIGHT))
+        {
             let x = chunk.world_offset[0] as f32 + CHUNK_SIZE_METERS as f32 * 0.5;
             let z = chunk.world_offset[1] as f32 + CHUNK_SIZE_METERS as f32 * 0.5;
 
-            let child = commands.spawn((
-                Transform::from_xyz(x, -5.0, z),
-                Mesh3d(meshes.add(Plane3d::default().mesh().size(CHUNK_SIZE_METERS as f32, CHUNK_SIZE_METERS as f32).normal(Dir3::Y))),
-                MeshMaterial3d(materials.add(StandardMaterial {
-                    base_color: Color::srgba(0.13, 0.59, 0.84, 0.6),
-                    reflectance: 0.1,
-                    alpha_mode: AlphaMode::Blend,
-                    ..default()
-                })),
-                NotShadowCaster,
-            )).id();
+            let child = commands
+                .spawn((
+                    Transform::from_xyz(x, -5.0, z),
+                    Mesh3d(
+                        meshes.add(
+                            Plane3d::default()
+                                .mesh()
+                                .size(CHUNK_SIZE_METERS as f32, CHUNK_SIZE_METERS as f32)
+                                .normal(Dir3::Y),
+                        ),
+                    ),
+                    MeshMaterial3d(water_material.clone()),
+                    NotShadowCaster,
+                ))
+                .id();
 
-            commands
-                .entity(entity)
-                .add_child(child);
+            commands.entity(entity).add_child(child);
         }
+    }
+}
+
+pub fn update_material_time(mut materials: ResMut<Assets<WaterMaterial>>, time: Res<Time>) {
+    for (_id, mat) in materials.iter_mut() {
+        mat.internal_time = time.elapsed_secs();
     }
 }
