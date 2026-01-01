@@ -1,14 +1,15 @@
 use bevy::app::{App, Plugin, Update};
 use bevy::pbr::MeshMaterial3d;
-use bevy::prelude::{Alpha, AlphaMode, Assets, Commands, Component, Entity, Query, Res, ResMut, StandardMaterial, Time};
-
+use bevy::prelude::{
+    Alpha, AlphaMode, Assets, Commands, Component, Entity, Query, Res, ResMut, StandardMaterial,
+    Time,
+};
 
 pub struct AnimationPlugin;
 
 impl Plugin for AnimationPlugin {
     fn build(&self, app: &mut App) {
-        app
-            .add_systems(Update, update_fade_in_animation)
+        app.add_systems(Update, update_fade_in_animation)
             .add_systems(Update, update_fade_out_animation);
     }
 }
@@ -30,7 +31,11 @@ impl FadeInAnimation {
 
 fn update_fade_in_animation(
     time: Res<Time>,
-    query: Query<(Entity, &MeshMaterial3d<StandardMaterial>, &mut FadeInAnimation)>,
+    query: Query<(
+        Entity,
+        &MeshMaterial3d<StandardMaterial>,
+        &mut FadeInAnimation,
+    )>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut commands: Commands,
 ) {
@@ -41,9 +46,7 @@ fn update_fade_in_animation(
             material.base_color.set_alpha(alpha);
         }
         if animation.seconds_passed >= animation.duration_seconds {
-            commands
-                .entity(entity)
-                .remove::<FadeInAnimation>();
+            commands.entity(entity).remove::<FadeInAnimation>();
 
             if let Some(material) = materials.get_mut(material.id()) {
                 material.alpha_mode = AlphaMode::Opaque;
@@ -51,7 +54,6 @@ fn update_fade_in_animation(
         }
     }
 }
-
 
 #[derive(Component)]
 pub struct FadeOutAnimation {
@@ -70,7 +72,11 @@ impl FadeOutAnimation {
 
 fn update_fade_out_animation(
     time: Res<Time>,
-    query: Query<(Entity, &MeshMaterial3d<StandardMaterial>, &mut FadeOutAnimation)>,
+    query: Query<(
+        Entity,
+        &MeshMaterial3d<StandardMaterial>,
+        &mut FadeOutAnimation,
+    )>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut commands: Commands,
 ) {
@@ -82,9 +88,7 @@ fn update_fade_out_animation(
             material.base_color.set_alpha(alpha);
         }
         if animation.seconds_passed >= animation.duration_seconds {
-            commands
-                .entity(entity)
-                .remove::<FadeOutAnimation>();
+            commands.entity(entity).remove::<FadeOutAnimation>();
         }
     }
 }
