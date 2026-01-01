@@ -16,8 +16,6 @@ use bevy::prelude::{
 };
 use bevy::render::render_resource::AsBindGroup;
 use bevy::shader::ShaderRef;
-use bevy::pbr::{MeshMaterial3d, StandardMaterial};
-use bevy::prelude::{AssetServer, Commands, Entity, Query, Res, ResMut, Vec3, Without, default, AlphaMode, Color, Transform, Plane3d, Cuboid, SceneRoot};
 use crate::animation::LiftUpAnimation;
 use crate::chunk::chunk_manager::MeshGenerationPriority;
 
