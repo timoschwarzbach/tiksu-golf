@@ -67,9 +67,9 @@ fn fragment(
         0.0,
     ), in.world_position.xz);
 
-    if distance < 10.0 {
+    if distance > 20.0 || 0.0 > in.world_position.x || in.world_position.x > 300.0 {
         // we can optionally modify the lit color before post-processing is applied
-        out.color = vec4<f32>(vec4<u32>(out.color * f32(ground_material.quantize_steps))) / f32(ground_material.quantize_steps);
+        out.color = vec4<f32>(out.color.rgb * 0.65, out.color.a);
     }
     // apply in-shader post processing (fog, alpha-premultiply, and also tonemapping, debanding if the camera is non-hdr)
     // note this does not include fullscreen postprocessing effects like bloom.
