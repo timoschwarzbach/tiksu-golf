@@ -41,6 +41,23 @@ fn approx_distance_to_curve(polynomial: Polynomial, p: vec2<f32>) -> f32 {
     return abs((p_y - p.y) / h);
 }
 
+fn on_clean_grass(polynomial: Polynomial, p: vec2<f32>) -> bool {
+    if 0.0 < p.x && p.x < 300.0 {
+        return approx_distance_to_curve(polynomial, p) < 18.0;
+    } else if p.x <= 0.0 {
+        let p_d = f_prime(polynomial, 0.0);
+        let h = sqrt(1 + p_d * p_d);
+        let dy = f(polynomial, 0.0) - (p.y - p.x * p_d);
+        return sqrt(dy * dy + p.x * p.x) < 18.0 * h;
+    } else {
+        let p_d = f_prime(polynomial, 300.0);
+        let h = sqrt(1 + p_d * p_d);
+        let dx = p.x - 300.0;
+        let dy = f(polynomial, 300.0) - (p.y - (p.x - 300.0) * p_d);
+        return sqrt(dy * dy + dx * dx) < 18.0 * h;
+    }
+}
+
 @group(#{MATERIAL_BIND_GROUP}) @binding(100)
 var<uniform> ground_material: GroundMaterial;
 
@@ -60,14 +77,14 @@ fn fragment(
     // apply lighting
     out.color = apply_pbr_lighting(pbr_input);
 
-    let distance = approx_distance_to_curve(Polynomial(
+    let polynomial = Polynomial(
         0.00003,
         -0.013,
         1.47,
-        0.0,
-    ), in.world_position.xz);
+        -10.0,
+    );
 
-    if distance > 20.0 || 0.0 > in.world_position.x || in.world_position.x > 300.0 {
+    if !on_clean_grass(polynomial, in.world_position.xz) {
         // we can optionally modify the lit color before post-processing is applied
         out.color = vec4<f32>(out.color.rgb * 0.65, out.color.a);
     }
