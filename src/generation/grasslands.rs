@@ -49,7 +49,12 @@ impl TerrainGenerator for GrasslandsGenerator {
 
     fn props_in_chunk(&self, offset: (i32, i32)) -> Vec<Prop> {
         // TODO: don't hardcode chunk size and water height
-        let approx_tree_count = ((self.perlin.get([offset.0 as f64 / 200.0, offset.1 as f64 / 200.0]) + 0.1) * 5.0).max(0.0) as usize;
+        let approx_tree_count = ((self
+            .perlin
+            .get([offset.0 as f64 / 200.0, offset.1 as f64 / 200.0])
+            + 0.1)
+            * 5.0)
+            .max(0.0) as usize;
         let seed = ((offset.0 as u64) << 16) ^ (offset.1 as u64);
         let mut random = StdRng::seed_from_u64(seed);
 

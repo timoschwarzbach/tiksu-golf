@@ -33,7 +33,6 @@ pub(super) fn update_lift_up_animation(
     }
 }
 
-
 #[derive(Component)]
 pub struct LiftDownAnimation {
     origin_y: f32,
