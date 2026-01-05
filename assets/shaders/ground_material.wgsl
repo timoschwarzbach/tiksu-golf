@@ -44,39 +44,6 @@ fn approx_distance_to_curve(polynomial: Polynomial, p: vec2<f32>) -> f32 {
 @group(#{MATERIAL_BIND_GROUP}) @binding(100)
 var<uniform> ground_material: GroundMaterial;
 
-fn distance_to_curve(origin: vec2<f32>, x_abcd: vec4<f32>, y_abcd: vec4<f32>, maximum: f32) -> f32 {
-    var minimum: f32 = maximum;
-    var min_idx = 0;
-    for (var t_i32 = 0; t_i32 <= 30; t_i32 += 1) {
-        let t: f32 = f32(t_i32) / 30.0;
-        let x: f32 = x_abcd.x * t * t * t + x_abcd.y * t * t + x_abcd.z * t + x_abcd.w;
-        let y: f32 = y_abcd.x * t * t * t + y_abcd.y * t * t + y_abcd.z * t + y_abcd.w;
-        let sqr_d: f32 = (origin.x - x) * (origin.x - x) + (origin.y - y) * (origin.y - y);
-
-        if sqr_d < minimum {
-            minimum = sqr_d;
-            min_idx = t_i32;
-        }
-    }
-
-    for (var t = -15; t <= 15; t += 1) {
-        let t: f32 = (f32(min_idx) + f32(t) / 15.0) / 30.0;
-        if t < 0.0 || t > 1.0 {
-            break;
-        }
-
-        let x: f32 = x_abcd.x * t * t * t + x_abcd.y * t * t + x_abcd.z * t + x_abcd.w;
-        let y: f32 = y_abcd.x * t * t * t + y_abcd.y * t * t + y_abcd.z * t + y_abcd.w;
-        let sqr_d: f32 = (origin.x - x) * (origin.x - x) + (origin.y - y) * (origin.y - y);
-
-        if sqr_d < minimum {
-            minimum = sqr_d;
-        }
-    }
-
-    return minimum;
-}
-
 @fragment
 fn fragment(
     in: VertexOutput,
@@ -93,7 +60,6 @@ fn fragment(
     // apply lighting
     out.color = apply_pbr_lighting(pbr_input);
 
-    // let distance = distance_to_curve(in.world_position.xz, vec4(-1130.0, 1740.0, -360.0, 0.0), vec4(1320.0, -2130.0, 1170.0, 0.0), 200.0);
     let distance = approx_distance_to_curve(Polynomial(
         0.00003,
         -0.013,
