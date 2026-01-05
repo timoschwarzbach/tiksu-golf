@@ -1,4 +1,4 @@
-#import bevy_pbr::forward_io::VertexOutput
+#import bevy_pbr::forward_io::{VertexOutput, Vertex}
 #import bevy_pbr::mesh_functions::{get_world_from_local, mesh_position_local_to_clip}
 #import bevy_pbr::mesh_view_bindings::globals
 #import bevy_pbr::pbr_functions::apply_pbr_lighting
@@ -13,11 +13,6 @@ fn fragment(input: VertexOutput, @builtin(front_facing) is_front: bool) -> @loca
     pbr_input.material.base_color = material_color;
     return apply_pbr_lighting(pbr_input);
 }
-
-struct Vertex {
-    @builtin(instance_index) instance_index: u32,
-    @location(0) position: vec3<f32>,
-};
 
 @vertex
 fn vertex(vertex: Vertex) -> VertexOutput {
