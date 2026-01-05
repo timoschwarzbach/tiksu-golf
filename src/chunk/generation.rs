@@ -4,14 +4,16 @@ use crate::chunk::{CHUNK_FIDELITY, CHUNK_SIZE_METERS, Chunk};
 use crate::generation::TerrainGenerator;
 use crate::generation::grasslands::GrasslandsGenerator;
 use bevy::asset::{Assets, Handle, RenderAssetUsages};
-use bevy::image::Image;
+use bevy::image::{
+    ImageAddressMode, ImageFilterMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor,
+};
 use bevy::light::NotShadowCaster;
 use bevy::math::Dir3;
 use bevy::mesh::{Indices, Mesh, Mesh3d, Meshable, PrimitiveTopology};
-use bevy::pbr::{MeshMaterial3d, StandardMaterial};
+use bevy::pbr::{ExtendedMaterial, MaterialExtension, MeshMaterial3d, StandardMaterial};
 use bevy::prelude::{
-    AlphaMode, Asset, AssetServer, Color, Commands, Entity, Material, Plane3d, Query, Reflect, Res,
-    ResMut, Time, Transform, Vec3, Without, default,
+    AlphaMode, Asset, AssetServer, Color, Commands, Entity, Image, Plane3d, Query, Res, ResMut,
+    Time, Transform, TypePath, Vec3, Without, default,
 };
 use bevy::render::render_resource::AsBindGroup;
 use bevy::shader::ShaderRef;
@@ -107,19 +109,16 @@ impl Chunk {
 
 const SHADER_ASSET_PATH: &str = "shaders/water.wgsl";
 
-#[derive(Asset, AsBindGroup, Reflect, Debug, Clone, Default)]
-pub struct WaterMaterial {
-    #[texture(0)]
-    #[sampler(1)]
-    color_texture: Option<Handle<Image>>,
-    #[uniform(2)]
-    pub internal_time: f32,
+#[derive(Asset, AsBindGroup, TypePath, Default, Clone)]
+pub struct WaterExtension {
+    #[uniform(100)]
+    pub time: f32,
+    #[texture(101)]
+    #[sampler(102)]
+    normal_map: Handle<Image>,
 }
 
-impl Material for WaterMaterial {
-    fn vertex_shader() -> ShaderRef {
-        SHADER_ASSET_PATH.into()
-    }
+impl MaterialExtension for WaterExtension {
     fn fragment_shader() -> ShaderRef {
         SHADER_ASSET_PATH.into()
     }
@@ -130,7 +129,7 @@ pub(super) fn insert_chunk_mesh(
     mut meshes: ResMut<Assets<Mesh>>,
     asset_server: Res<AssetServer>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut water_material: ResMut<Assets<WaterMaterial>>,
+    mut water_material: ResMut<Assets<ExtendedMaterial<StandardMaterial, WaterExtension>>>,
     mut commands: Commands,
 ) {
     let selection = query
@@ -150,10 +149,18 @@ pub(super) fn insert_chunk_mesh(
             base_color: Color::srgba(1.0, 1.0, 1.0, 0.0),
             ..default()
         });
-        let water_material = water_material.add(WaterMaterial {
-            color_texture: Some(asset_server.load("textures/water/water0342.png")),
-            ..default()
-        });
+        let normal_handle =
+            asset_server.load_with_settings("textures/water/water0342normal.png", |s: &mut _| {
+                *s = ImageLoaderSettings {
+                    sampler: ImageSampler::Descriptor(ImageSamplerDescriptor {
+                        address_mode_u: ImageAddressMode::Repeat,
+                        address_mode_v: ImageAddressMode::Repeat,
+                        mag_filter: ImageFilterMode::Linear,
+                        ..default()
+                    }),
+                    ..default()
+                }
+            });
         let terrain_mesh_handle: Handle<Mesh> = meshes.add(chunk.generate_mesh());
         commands
             .entity(entity)
@@ -185,18 +192,32 @@ pub(super) fn insert_chunk_mesh(
                                 .normal(Dir3::Y),
                         ),
                     ),
-                    MeshMaterial3d(water_material.clone()),
+                    MeshMaterial3d(water_material.add(ExtendedMaterial {
+                        base: StandardMaterial {
+                            base_color: Color::srgba(0.059, 0.886, 0.902, 0.7),
+                            reflectance: 0.15,
+                            alpha_mode: AlphaMode::Blend,
+                            ..default()
+                        },
+                        extension: WaterExtension {
+                            time: 0.0,
+                            normal_map: normal_handle,
+                            ..default()
+                        },
+                    })),
                     NotShadowCaster,
                 ))
                 .id();
-
             commands.entity(entity).add_child(child);
         }
     }
 }
 
-pub fn update_material_time(mut materials: ResMut<Assets<WaterMaterial>>, time: Res<Time>) {
+pub fn update_material_time(
+    mut materials: ResMut<Assets<ExtendedMaterial<StandardMaterial, WaterExtension>>>,
+    time: Res<Time>,
+) {
     for (_id, mat) in materials.iter_mut() {
-        mat.internal_time = time.elapsed_secs();
+        mat.extension.time = time.elapsed_secs();
     }
 }

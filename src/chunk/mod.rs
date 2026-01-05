@@ -4,13 +4,12 @@ pub mod generation;
 
 use crate::animation::FadeOutAnimation;
 use crate::chunk::chunk_manager::ChunkManager;
-use crate::chunk::generation::WaterMaterial;
+use crate::chunk::generation::WaterExtension;
 use bevy::app::{App, Plugin, Startup, Update};
-use bevy::asset::Assets;
+use bevy::pbr::ExtendedMaterial;
 use bevy::prelude::{
-    Commands, Component, Entity, MaterialPlugin, PostUpdate, Query, Res, ResMut, With, Without,
+    Commands, Component, Entity, MaterialPlugin, PostUpdate, Query, StandardMaterial, With, Without,
 };
-use bevy::time::Time;
 
 pub(self) const CHUNK_SIZE_METERS: usize = 32;
 pub(self) const CHUNK_FIDELITY: usize = CHUNK_SIZE_METERS * 1;
@@ -42,7 +41,9 @@ pub struct ChunkPlugin;
 
 impl Plugin for ChunkPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(MaterialPlugin::<WaterMaterial>::default())
+        app.add_plugins(MaterialPlugin::<
+            ExtendedMaterial<StandardMaterial, WaterExtension>,
+        >::default())
             .add_systems(Startup, |mut commands: Commands| {
                 commands.insert_resource(ChunkManager::new());
             })
