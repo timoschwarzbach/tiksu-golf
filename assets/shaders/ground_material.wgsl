@@ -19,6 +19,28 @@ struct GroundMaterial {
     quantize_steps: u32,
 }
 
+struct Polynomial {
+    a: f32,
+    b: f32,
+    c: f32,
+    d: f32,
+}
+
+fn f(polynomial: Polynomial, x: f32) -> f32 {
+    return polynomial.a * x * x * x + polynomial.b * x * x + polynomial.c * x + polynomial.d;
+}
+
+fn f_prime(polynomial: Polynomial, x: f32) -> f32 {
+    return 3.0 * polynomial.a * x * x + 2.0 * polynomial.b * x + polynomial.c;
+}
+
+fn approx_distance_to_curve(polynomial: Polynomial, p: vec2<f32>) -> f32 {
+    let p_y = f(polynomial, p.x);
+    let p_d = f_prime(polynomial, p.x);
+    let h = sqrt(1 + p_d * p_d);
+    return abs((p_y - p.y) / h);
+}
+
 @group(#{MATERIAL_BIND_GROUP}) @binding(100)
 var<uniform> ground_material: GroundMaterial;
 
@@ -71,9 +93,15 @@ fn fragment(
     // apply lighting
     out.color = apply_pbr_lighting(pbr_input);
 
-    let distance = distance_to_curve(in.world_position.xz, vec4(-1130.0, 1740.0, -360.0, 0.0), vec4(1320.0, -2130.0, 1170.0, 0.0), 200.0);
+    // let distance = distance_to_curve(in.world_position.xz, vec4(-1130.0, 1740.0, -360.0, 0.0), vec4(1320.0, -2130.0, 1170.0, 0.0), 200.0);
+    let distance = approx_distance_to_curve(Polynomial(
+        0.00003,
+        -0.013,
+        1.47,
+        0.0,
+    ), in.world_position.xz);
 
-    if distance < 190.0 {
+    if distance < 10.0 {
         // we can optionally modify the lit color before post-processing is applied
         out.color = vec4<f32>(vec4<u32>(out.color * f32(ground_material.quantize_steps))) / f32(ground_material.quantize_steps);
     }
