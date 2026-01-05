@@ -128,7 +128,7 @@ pub(super) fn insert_chunk_mesh(
                     asset_server.load("textures/grass/Grass008_2K-PNG_NormalGL.png"),
                 ),
                 reflectance: 0.06,
-                //alpha_mode: AlphaMode::Blend,
+                alpha_mode: AlphaMode::AlphaToCoverage,
                 //base_color: Color::srgba(1.0, 1.0, 1.0, 0.0),
                 ..default()
             },
