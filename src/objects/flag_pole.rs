@@ -113,6 +113,7 @@ fn generate_mesh() -> Mesh {
 }
 
 const SHADER_ASSET_PATH: &str = "shaders/flag_pole.wgsl";
+const PREPASS_SHADER_ASSET_PATH: &str = "shaders/flag_pole_prepass.wgsl";
 
 #[derive(Asset, AsBindGroup, Reflect, Debug, Clone, Default)]
 struct FlagMaterialExtension {
@@ -126,5 +127,8 @@ impl MaterialExtension for FlagMaterialExtension {
     }
     fn fragment_shader() -> ShaderRef {
         SHADER_ASSET_PATH.into()
+    }
+    fn prepass_vertex_shader() -> ShaderRef {
+        PREPASS_SHADER_ASSET_PATH.into()
     }
 }
