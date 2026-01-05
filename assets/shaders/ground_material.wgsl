@@ -58,6 +58,12 @@ fn on_clean_grass(polynomial: Polynomial, p: vec2<f32>) -> bool {
     }
 }
 
+fn in_hole(polynomial: Polynomial, p: vec2<f32>) -> bool {
+    let dx = 300.0 - p.x;
+    let dy = f(polynomial, 300.0) - p.y;
+    return dx * dx + dy * dy < 0.054;
+}
+
 @group(#{MATERIAL_BIND_GROUP}) @binding(100)
 var<uniform> ground_material: GroundMaterial;
 
@@ -88,6 +94,11 @@ fn fragment(
         // we can optionally modify the lit color before post-processing is applied
         out.color = vec4<f32>(out.color.rgb * 0.65, out.color.a);
     }
+
+    if in_hole(polynomial, in.world_position.xz) {
+        out.color.a = 0.0;
+    }
+
     // apply in-shader post processing (fog, alpha-premultiply, and also tonemapping, debanding if the camera is non-hdr)
     // note this does not include fullscreen postprocessing effects like bloom.
     out.color = main_pass_post_lighting_processing(pbr_input, out.color);
