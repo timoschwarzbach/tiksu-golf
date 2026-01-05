@@ -13,16 +13,26 @@ struct Vertex {
 fn vertex(vertex: Vertex) -> prepass_io::VertexOutput {
     var out: prepass_io::VertexOutput;
 
-    var time = globals.time * 5;
-    var posX = vertex.position.x + 0.5;
+    let time = globals.time * 3.5;
+    let influence = saturate(vertex.position.x+0.5);
+    let main_wave = sin(time + vertex.position.x * 2.0) * 0.15;
+
+    let flap = sin(time * 2.5 + vertex.position.x * 12.0) * 0.04;
+    let ripples = sin(time * 1.8 + vertex.position.x * 25.0 + vertex.position.y * 10.0) * 0.02;
+
+    let displacement_z = (main_wave + flap + ripples) * influence;
+    let displacement_y = (sin(time * 0.5 + vertex.position.x) * 0.05) * influence;
+
+    let displaced_position = vec4<f32>(
+        vertex.position.x, 
+        vertex.position.y + displacement_y, 
+        vertex.position.z + displacement_z, 
+        1.0
+    );
+
     out.position = mesh_position_local_to_clip(
         get_world_from_local(vertex.instance_index),
-        vec4<f32>(
-            vertex.position.x,
-            vertex.position.y + sin(0.5*time+posX*2)*posX*0.05,
-            vertex.position.z + sin(time+posX*16)*posX*0.03 + sin(time+posX*8)*posX*posX*0.1,
-            1.0
-        )
+        displaced_position
     );
     return out;
 }
