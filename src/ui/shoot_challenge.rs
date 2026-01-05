@@ -43,10 +43,10 @@ struct ShootChallengeBars;
 // there is a certain grace area (based on the club) -> if they don't hit the cursor in this area
 // the shot misses e.g. uncontrolled shot
 #[derive(Resource)]
-struct AimChallengeResource {
+pub struct AimChallengeResource {
     cursor_pos: f32,
-    power_marker: Option<f32>,
-    precision_marker: Option<f32>,
+    pub power_marker: Option<f32>,
+    pub precision_marker: Option<f32>,
 }
 
 #[derive(Component)]
