@@ -5,13 +5,16 @@ pub mod generation;
 use crate::chunk::chunk_manager::ChunkManager;
 use crate::chunk::generation::WaterExtension;
 use bevy::app::{App, Plugin, Startup, Update};
+use bevy::prelude::{Commands, Component, Entity, PostUpdate, Query, With, Without};
+use crate::animation::{FadeOutAnimation, LiftDownAnimation};
+use crate::generation::Prop;
+use bevy::asset::Assets;
+use bevy::pbr::MaterialPlugin;
+use bevy::time::Time;
 use bevy::pbr::ExtendedMaterial;
 use bevy::prelude::{
     Commands, Component, Entity, MaterialPlugin, PostUpdate, Query, StandardMaterial, With, Without,
 };
-use bevy::prelude::{Commands, Component, Entity, PostUpdate, Query, With, Without};
-use crate::animation::{FadeOutAnimation, LiftDownAnimation};
-use crate::generation::Prop;
 
 pub(self) const CHUNK_SIZE_METERS: usize = 32;
 pub(self) const CHUNK_FIDELITY: usize = CHUNK_SIZE_METERS * 1;
