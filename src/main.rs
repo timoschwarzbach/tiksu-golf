@@ -6,6 +6,7 @@ pub mod generation;
 mod objects;
 mod state;
 mod ui;
+mod material;
 
 use crate::{
     add_chunk_collider::create_collider_from_mesh,
@@ -21,6 +22,7 @@ use crate::{
 use avian3d::PhysicsPlugins;
 use bevy::light::CascadeShadowConfigBuilder;
 use bevy::prelude::*;
+use crate::material::CustomMaterialsPlugin;
 
 fn main() {
     App::new()
@@ -34,6 +36,7 @@ fn main() {
             AimStatePlugin,
             ShootChallengePlugin,
             FlagPolePlugin,
+            CustomMaterialsPlugin,
         ))
         .init_state::<AppState>()
         .add_systems(Startup, setup)

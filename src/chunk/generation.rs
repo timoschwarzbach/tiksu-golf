@@ -6,10 +6,11 @@ use bevy::gltf::GltfAssetLabel;
 use bevy::light::NotShadowCaster;
 use bevy::math::Dir3;
 use bevy::mesh::{Indices, Mesh, Mesh3d, Meshable, PrimitiveTopology};
-use bevy::pbr::{MeshMaterial3d, StandardMaterial};
+use bevy::pbr::{ExtendedMaterial, MeshMaterial3d, StandardMaterial};
 use bevy::prelude::{AssetServer, Commands, Entity, Query, Res, ResMut, Vec3, Without, default, AlphaMode, Color, Transform, Plane3d, Cuboid, SceneRoot};
 use crate::animation::LiftUpAnimation;
 use crate::chunk::chunk_manager::MeshGenerationPriority;
+use crate::material::ground::GroundMaterial;
 
 const CHUNKS_MESHED_PER_TICK: usize = 24;
 const WATER_HEIGHT: f32 = -4.0;
@@ -107,6 +108,7 @@ pub(super) fn insert_chunk_mesh(
     query: Query<(Entity, &Chunk, &MeshGenerationPriority), Without<Mesh3d>>,
     mut meshes: ResMut<Assets<Mesh>>,
     asset_server: Res<AssetServer>,
+    mut ground_materials: ResMut<Assets<ExtendedMaterial<StandardMaterial, GroundMaterial>>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut commands: Commands,
 ) {
@@ -117,17 +119,20 @@ pub(super) fn insert_chunk_mesh(
 
     for (entity, chunk, _) in selection {
         // terrain height mesh
-        let material = materials.add(StandardMaterial {
-            base_color_texture: Some(
-                asset_server.load("textures/grass/Grass008_2K-PNG_Color.png"),
-            ),
-            normal_map_texture: Some(
-                asset_server.load("textures/grass/Grass008_2K-PNG_NormalGL.png"),
-            ),
-            reflectance: 0.06,
-            //alpha_mode: AlphaMode::Blend,
-            //base_color: Color::srgba(1.0, 1.0, 1.0, 0.0),
-            ..default()
+        let material = ground_materials.add(ExtendedMaterial {
+            base: StandardMaterial {
+                base_color_texture: Some(
+                    asset_server.load("textures/grass/Grass008_2K-PNG_Color.png"),
+                ),
+                normal_map_texture: Some(
+                    asset_server.load("textures/grass/Grass008_2K-PNG_NormalGL.png"),
+                ),
+                reflectance: 0.06,
+                //alpha_mode: AlphaMode::Blend,
+                //base_color: Color::srgba(1.0, 1.0, 1.0, 0.0),
+                ..default()
+            },
+            extension: GroundMaterial::new(),
         });
         let terrain_mesh_handle: Handle<Mesh> = meshes.add(chunk.generate_mesh());
         commands
