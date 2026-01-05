@@ -15,6 +15,7 @@ use crate::{
     objects::{flag_pole::FlagPolePlugin, golfball::GolfballPlugin},
     state::{
         aim::AimStatePlugin,
+        inshot::InShotPlugin,
         state::{AppState, debug_state_change_input_handler},
     },
     ui::shoot_challenge::ShootChallengePlugin,
@@ -35,6 +36,7 @@ fn main() {
             animation::AnimationPlugin,
             AimStatePlugin,
             ShootChallengePlugin,
+            InShotPlugin,
             FlagPolePlugin,
             CustomMaterialsPlugin,
         ))
