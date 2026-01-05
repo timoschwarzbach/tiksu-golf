@@ -1,6 +1,8 @@
+use crate::animation::LiftUpAnimation;
+use crate::chunk::chunk_manager::MeshGenerationPriority;
 use crate::chunk::{CHUNK_FIDELITY, CHUNK_SIZE_METERS, Chunk};
-use crate::generation::{Prop, TerrainGenerator};
 use crate::generation::grasslands::GrasslandsGenerator;
+use crate::generation::{Prop, TerrainGenerator};
 use bevy::asset::{Assets, Handle, RenderAssetUsages};
 use bevy::gltf::GltfAssetLabel;
 use bevy::image::{
@@ -11,13 +13,11 @@ use bevy::math::Dir3;
 use bevy::mesh::{Indices, Mesh, Mesh3d, Meshable, PrimitiveTopology};
 use bevy::pbr::{ExtendedMaterial, MaterialExtension, MeshMaterial3d, StandardMaterial};
 use bevy::prelude::{
-    AlphaMode, Asset, AssetServer, Color, Commands, Entity, Image, Plane3d, Query, Res, ResMut,
-    Time, Transform, TypePath, Vec3, Without, default,
+    AlphaMode, Asset, AssetServer, Color, Commands, Entity, Image, Plane3d, Query, Reflect, Res,
+    ResMut, SceneRoot, Time, Transform, Vec3, Without, default,
 };
 use bevy::render::render_resource::AsBindGroup;
 use bevy::shader::ShaderRef;
-use crate::animation::LiftUpAnimation;
-use crate::chunk::chunk_manager::MeshGenerationPriority;
 
 const CHUNKS_MESHED_PER_TICK: usize = 24;
 const WATER_HEIGHT: f32 = -4.0;
@@ -113,13 +113,13 @@ impl Chunk {
 
 const SHADER_ASSET_PATH: &str = "shaders/water.wgsl";
 
-#[derive(Asset, AsBindGroup, TypePath, Default, Clone)]
+#[derive(Asset, AsBindGroup, Reflect, Debug, Clone, Default)]
 pub struct WaterExtension {
     #[uniform(100)]
     pub time: f32,
     #[texture(101)]
     #[sampler(102)]
-    normal_map: Handle<Image>,
+    normal_map: Option<Handle<Image>>,
 }
 
 impl MaterialExtension for WaterExtension {
@@ -205,27 +205,41 @@ pub(super) fn insert_chunk_mesh(
                         },
                         extension: WaterExtension {
                             time: 0.0,
-                            normal_map: normal_handle,
+                            normal_map: Some(normal_handle),
                             ..default()
                         },
                     })),
                     NotShadowCaster,
                 ))
                 .id();
+
             commands.entity(entity).add_child(child);
         }
 
         // props
-        for Prop { position: (px, py, pz), seed, .. } in &chunk.props {
+        for Prop {
+            position: (px, py, pz),
+            seed,
+            ..
+        } in &chunk.props
+        {
             let height = 0.035 + ((*seed) % 100) as f32 * 0.0001;
-            let child = commands.spawn((
-                Transform::from_xyz(chunk.world_offset[0] as f32 + *px, *py - 0.5, chunk.world_offset[1] as f32 + *pz).with_scale(Vec3::splat(height)),
-                SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset("model/pine_tree.glb"))),
-            )).id();
+            let child = commands
+                .spawn((
+                    Transform::from_xyz(
+                        chunk.world_offset[0] as f32 + *px,
+                        *py - 0.5,
+                        chunk.world_offset[1] as f32 + *pz,
+                    )
+                    .with_scale(Vec3::splat(height)),
+                    SceneRoot(
+                        asset_server
+                            .load(GltfAssetLabel::Scene(0).from_asset("model/pine_tree.glb")),
+                    ),
+                ))
+                .id();
 
-            commands
-                .entity(entity)
-                .add_child(child);
+            commands.entity(entity).add_child(child);
         }
     }
 }
