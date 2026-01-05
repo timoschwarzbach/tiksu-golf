@@ -1,6 +1,6 @@
 #import bevy_render::globals::Globals
 #import bevy_pbr::mesh_functions::{get_world_from_local, mesh_position_local_to_clip}
-#import bevy_pbr::prepass_io
+#import bevy_pbr::prepass_io::VertexOutput
 
 @group(0) @binding(1) var<uniform> globals: Globals;
 
@@ -10,8 +10,8 @@ struct Vertex {
 };
 
 @vertex
-fn vertex(vertex: Vertex) -> prepass_io::VertexOutput {
-    var out: prepass_io::VertexOutput;
+fn vertex(vertex: Vertex) -> VertexOutput {
+    var out: VertexOutput;
 
     let time = globals.time * 3.5;
     let influence = saturate(vertex.position.x+0.5);
