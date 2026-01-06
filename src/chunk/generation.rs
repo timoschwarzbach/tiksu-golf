@@ -241,6 +241,19 @@ pub(super) fn insert_chunk_mesh(
 
             commands.entity(entity).add_child(child);
         }
+
+        // props
+        for Prop { position: (px, py, pz), seed, .. } in &chunk.props {
+            let height = 0.035 + ((*seed) % 100) as f32 * 0.0001;
+            let child = commands.spawn((
+                Transform::from_xyz(chunk.world_offset[0] as f32 + *px, *py - 0.5, chunk.world_offset[1] as f32 + *pz).with_scale(Vec3::splat(height)),
+                SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset("model/pine_tree.glb"))),
+            )).id();
+
+            commands
+                .entity(entity)
+                .add_child(child);
+        }
     }
 }
 

@@ -34,7 +34,9 @@ pub(super) fn update_fade_in_animation(
             material.base_color.set_alpha(alpha);
         }
         if animation.seconds_passed >= animation.duration_seconds {
-            commands.entity(entity).remove::<FadeInAnimation>();
+            commands
+                .entity(entity)
+                .remove::<FadeInAnimation>();
 
             if let Some(material) = materials.get_mut(material.id()) {
                 material.alpha_mode = AlphaMode::Opaque;
@@ -42,6 +44,7 @@ pub(super) fn update_fade_in_animation(
         }
     }
 }
+
 
 #[derive(Component)]
 pub struct FadeOutAnimation {
@@ -76,7 +79,9 @@ pub(super) fn update_fade_out_animation(
             material.base_color.set_alpha(alpha);
         }
         if animation.seconds_passed >= animation.duration_seconds {
-            commands.entity(entity).remove::<FadeOutAnimation>();
+            commands
+                .entity(entity)
+                .remove::<FadeOutAnimation>();
         }
     }
 }
