@@ -3,6 +3,7 @@ use noise::NoiseFn;
 use noise::Perlin;
 use rand::rngs::StdRng;
 use rand::{Rng, RngCore, SeedableRng};
+use crate::material::ground::Polynomial;
 /* Pipeline (one time):
  * 1. generate course / routes (single fixed line for now)
  *   - start and end location
@@ -25,13 +26,52 @@ use rand::{Rng, RngCore, SeedableRng};
 pub struct GrasslandsGenerator {
     seed: u32,
     perlin: Perlin,
+    course: Polynomial,
+    start: [f32; 2],
+    hole: [f32; 2],
+}
+
+fn random_range(rng: &mut StdRng, min: f32, max: f32) -> f32 {
+    rng.next_u32() as f32 / u32::MAX as f32 * (max - min) + min
 }
 
 impl GrasslandsGenerator {
     pub fn new(seed: u32) -> Self {
+        let mut rng = StdRng::seed_from_u64(seed.into());
+
+        let mut polynomial = Polynomial::default();
+        let hits = (
+            random_range(&mut rng, -40.0, 40.0),
+            random_range(&mut rng, -80.0, 80.0),
+            random_range(&mut rng, -80.0, 80.0),
+            random_range(&mut rng, -80.0, 80.0),
+        );
+        polynomial.d = hits.0;
+        for _ in 0..10 {
+            polynomial.c += (hits.1 - polynomial.f(100.0)) / 100.0;
+            polynomial.b += (hits.2 - polynomial.f(200.0)) / 200.0 / 200.0;
+            polynomial.a += (hits.3 - polynomial.f(300.0)) / 300.0 / 300.0 / 300.0;
+        }
+
+        //dbg!(&polynomial);
+        //dbg!((polynomial.f(0.0), polynomial.f(100.0), polynomial.f(200.0), polynomial.f(300.0)));
+
+        /*let polynomial = Polynomial {
+            a: random_range(&mut rng, 0.0, 0.00002),
+            b: random_range(&mut rng, -0.01, 0.0),
+            c: random_range(&mut rng, 0.0, 1.5),
+            d: random_range(&mut rng, -30.0, 30.0),
+        };*/
+
+        let start = [0.0, polynomial.f(0.0)];
+        let hole = [300.0, polynomial.f(300.0)];
+
         GrasslandsGenerator {
             seed,
             perlin: Perlin::new(seed),
+            course: polynomial,
+            start,
+            hole,
         }
     }
 
@@ -72,5 +112,17 @@ impl TerrainGenerator for GrasslandsGenerator {
         }
 
         result
+    }
+
+    fn course_layout(&self) -> Polynomial {
+        self.course.clone()
+    }
+
+    fn start(&self) -> [f32; 2] {
+        self.start
+    }
+
+    fn hole(&self) -> [f32; 2] {
+        self.hole
     }
 }

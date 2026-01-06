@@ -20,7 +20,7 @@ impl Chunk {
         let mut elevation = Box::new([[0.0; CHUNK_FIDELITY + 1]; CHUNK_FIDELITY + 1]);
 
         // TODO: store somewhere (?)
-        let generator = GrasslandsGenerator::new(42);
+        let generator = GrasslandsGenerator::new(0);
 
         for x in 0..=CHUNK_FIDELITY {
             for z in 0..=CHUNK_FIDELITY {
@@ -38,6 +38,7 @@ impl Chunk {
             world_offset,
             elevation,
             props,
+            course: generator.course_layout(),
         }
     }
 
@@ -132,7 +133,7 @@ pub(super) fn insert_chunk_mesh(
                 //base_color: Color::srgba(1.0, 1.0, 1.0, 0.0),
                 ..default()
             },
-            extension: GroundMaterial::new(),
+            extension: GroundMaterial::new(chunk.course.clone()),
         });
         let terrain_mesh_handle: Handle<Mesh> = meshes.add(chunk.generate_mesh());
         commands
