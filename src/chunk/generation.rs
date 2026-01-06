@@ -1,6 +1,5 @@
 use crate::chunk::{CHUNK_FIDELITY, CHUNK_SIZE_METERS, Chunk};
 use crate::generation::{Prop, TerrainGenerator};
-use crate::generation::grasslands::GrasslandsGenerator;
 use bevy::asset::{Assets, Handle, RenderAssetUsages};
 use bevy::gltf::GltfAssetLabel;
 use bevy::light::NotShadowCaster;
@@ -16,11 +15,8 @@ const CHUNKS_MESHED_PER_TICK: usize = 24;
 const WATER_HEIGHT: f32 = -4.0;
 
 impl Chunk {
-    pub fn generate_at(world_offset: [i32; 2]) -> Self {
+    pub fn generate_at(generator: &dyn TerrainGenerator, world_offset: [i32; 2]) -> Self {
         let mut elevation = Box::new([[0.0; CHUNK_FIDELITY + 1]; CHUNK_FIDELITY + 1]);
-
-        // TODO: store somewhere (?)
-        let generator = GrasslandsGenerator::new(0);
 
         for x in 0..=CHUNK_FIDELITY {
             for z in 0..=CHUNK_FIDELITY {
