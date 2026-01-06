@@ -4,16 +4,20 @@ use bevy::prelude::{Commands, Component, Entity, Query, ResMut, Resource, Transf
 use std::collections::{HashMap, HashSet};
 use std::collections::hash_map::Entry;
 use crate::animation::LiftDownAnimation;
+use crate::generation::grasslands::GrasslandsGenerator;
+use crate::generation::TerrainGenerator;
 
 #[derive(Resource)]
 pub struct ChunkManager {
     chunks: HashMap<(i32, i32), Entity>,
+    generator: Box<dyn TerrainGenerator + Send + Sync>,
 }
 
 impl ChunkManager {
-    pub fn new() -> Self {
+    pub fn new(seed: u32) -> Self {
         ChunkManager {
             chunks: HashMap::new(),
+            generator: Box::new(GrasslandsGenerator::new(seed)),
         }
     }
 
@@ -33,7 +37,7 @@ impl ChunkManager {
         self.chunks.entry(chunk_pos).or_insert_with(|| {
             commands
                 .spawn((
-                    Chunk::generate_at([
+                    Chunk::generate_at(self.generator.as_ref(), [
                         chunk_pos.0 * CHUNK_SIZE_METERS as i32,
                         chunk_pos.1 * CHUNK_SIZE_METERS as i32,
                     ]),

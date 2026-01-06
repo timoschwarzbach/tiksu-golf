@@ -37,7 +37,7 @@ fn random_range(rng: &mut StdRng, min: f32, max: f32) -> f32 {
 
 impl GrasslandsGenerator {
     pub fn new(seed: u32) -> Self {
-        let mut rng = StdRng::seed_from_u64(seed.into());
+        let mut rng = StdRng::seed_from_u64(seed as u64);
 
         let mut polynomial = Polynomial::default();
         let hits = (
