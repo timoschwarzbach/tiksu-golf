@@ -1,4 +1,4 @@
-use crate::generation::{Prop, PropType, TerrainGenerator};
+use crate::generation::{Prop, PropType, TerrainGenerator, ZoneType};
 use noise::NoiseFn;
 use noise::Perlin;
 use rand::rngs::StdRng;
@@ -53,16 +53,6 @@ impl GrasslandsGenerator {
             polynomial.a += (hits.3 - polynomial.f(300.0)) / 300.0 / 300.0 / 300.0;
         }
 
-        //dbg!(&polynomial);
-        //dbg!((polynomial.f(0.0), polynomial.f(100.0), polynomial.f(200.0), polynomial.f(300.0)));
-
-        /*let polynomial = Polynomial {
-            a: random_range(&mut rng, 0.0, 0.00002),
-            b: random_range(&mut rng, -0.01, 0.0),
-            c: random_range(&mut rng, 0.0, 1.5),
-            d: random_range(&mut rng, -30.0, 30.0),
-        };*/
-
         let start = [0.0, polynomial.f(0.0)];
         let hole = [300.0, polynomial.f(300.0)];
 
@@ -100,7 +90,7 @@ impl TerrainGenerator for GrasslandsGenerator {
             let z = random.random_range(0.0..32.0);
             let y = self.height_at(x + offset.0 as f32, z + offset.1 as f32);
 
-            if y > -3.0 {
+            if self.zone_type_at(x + offset.0 as f32, z + offset.1 as f32) == ZoneType::Offtrack {
                 let seed = random.next_u32();
 
                 result.push(Prop {
@@ -124,5 +114,15 @@ impl TerrainGenerator for GrasslandsGenerator {
 
     fn hole(&self) -> [f32; 2] {
         self.hole
+    }
+
+    fn zone_type_at(&self, x: f32, y: f32) -> ZoneType {
+        if self.height_at(x, y) <= -3.0 {
+            ZoneType::DeadZone
+        } else if self.course.on_clean_grass([x, y]) {
+            ZoneType::Clean
+        } else {
+            ZoneType::Offtrack
+        }
     }
 }
