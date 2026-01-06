@@ -122,7 +122,7 @@ fn execute_golfball_punch(
     let mut missed = false;
     let power = aim_challenge_resource.power_marker.unwrap_or_default(); // 0 none ; 1 max
     let direction: Vec3 = transform.forward().as_vec3();
-    let club_direction = Vec3::Y;
+    let club_direction = Vec3::Y * power;
     let mut inaccuracies = Quat::IDENTITY;
     let mut deviation = Quat::IDENTITY;
 
