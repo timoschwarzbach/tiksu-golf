@@ -41,8 +41,9 @@ pub struct ChunkPlugin;
 
 impl Plugin for ChunkPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, |mut commands: Commands| {
-            commands.insert_resource(ChunkManager::new(100));
+        let seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as u32;
+        app.add_systems(Startup, move |mut commands: Commands| {
+            commands.insert_resource(ChunkManager::new(seed));
         })
         .add_systems(Update, generation::insert_chunk_mesh)
         .add_systems(Update, chunk_manager::load_chunks)
