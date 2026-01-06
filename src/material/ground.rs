@@ -30,7 +30,7 @@ impl Polynomial {
         let p_y = self.f(p[0]);
         let p_d = self.f_prime(p[0]);
         let h = (1.0 + p_d * p_d).sqrt();
-        ((p_y * p_y) / h).abs()
+        ((p_y - p[1]) / h).abs()
     }
 
     pub fn on_clean_grass(&self, p: [f32; 2]) -> bool {
