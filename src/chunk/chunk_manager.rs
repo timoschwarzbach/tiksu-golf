@@ -10,7 +10,7 @@ use crate::generation::TerrainGenerator;
 #[derive(Resource)]
 pub struct ChunkManager {
     chunks: HashMap<(i32, i32), Entity>,
-    generator: Box<dyn TerrainGenerator + Send + Sync>,
+    pub generator: Box<dyn TerrainGenerator + Send + Sync>,
 }
 
 impl ChunkManager {
