@@ -2,12 +2,16 @@ pub mod chunk_loader;
 pub mod chunk_manager;
 pub mod generation;
 
-use crate::chunk::chunk_manager::ChunkManager;
-use bevy::app::{App, Plugin, Startup, Update};
-use bevy::prelude::{Commands, Component, Entity, PostUpdate, Query, With, Without};
 use crate::animation::{FadeOutAnimation, LiftDownAnimation};
+use crate::chunk::chunk_manager::ChunkManager;
+use crate::chunk::generation::WaterExtension;
 use crate::generation::Prop;
 use crate::material::ground::Polynomial;
+use bevy::app::{App, Plugin, Startup, Update};
+use bevy::pbr::ExtendedMaterial;
+use bevy::prelude::{
+    Commands, Component, Entity, MaterialPlugin, PostUpdate, Query, StandardMaterial, With, Without,
+};
 
 pub(self) const CHUNK_SIZE_METERS: usize = 32;
 pub(self) const CHUNK_FIDELITY: usize = CHUNK_SIZE_METERS * 1;
@@ -42,20 +46,34 @@ pub struct ChunkPlugin;
 impl Plugin for ChunkPlugin {
     fn build(&self, app: &mut App) {
         let seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as u32;
-        app.add_systems(Startup, move |mut commands: Commands| {
+        app.add_plugins(MaterialPlugin::<
+            ExtendedMaterial<StandardMaterial, WaterExtension>,
+        >::default())
+            .add_systems(Startup, move |mut commands: Commands| {
             commands.insert_resource(ChunkManager::new(seed));
-        })
-        .add_systems(Update, generation::insert_chunk_mesh)
-        .add_systems(Update, chunk_manager::load_chunks)
-        .add_systems(Update, chunk_manager::unload_chunks)
-        .add_systems(PostUpdate, despawn_unloaded_chunks);
+            })
+            .add_systems(Update, generation::insert_chunk_mesh)
+            .add_systems(Update, chunk_manager::load_chunks)
+            .add_systems(Update, chunk_manager::unload_chunks)
+            .add_systems(Update, generation::update_material_time)
+            .add_systems(PostUpdate, despawn_unloaded_chunks);
     }
 }
 
 #[derive(Component)]
 struct ToUnload;
 
-fn despawn_unloaded_chunks(query: Query<Entity, (With<ToUnload>, Without<FadeOutAnimation>, Without<LiftDownAnimation>)>, mut commands: Commands) {
+fn despawn_unloaded_chunks(
+    query: Query<
+        Entity,
+        (
+            With<ToUnload>,
+            Without<FadeOutAnimation>,
+            Without<LiftDownAnimation>,
+        ),
+    >,
+    mut commands: Commands,
+) {
     for chunk in query {
         commands.entity(chunk).despawn();
     }
