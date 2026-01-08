@@ -1,6 +1,6 @@
 use bevy::app::{App, Update};
 use bevy::prelude::*;
-
+use bevy::render::render_resource::ShaderType;
 use crate::camera::ActiveCamera;
 use crate::objects::flag_pole::FlagPole;
 use crate::objects::golfball::Golfball;
@@ -27,6 +27,7 @@ fn camera_follow_golfball(
     let flag_direction_vector = (flag_position.translation - set.p0().1.translation).normalize();
     let translation = set.p0().1.translation;
     let mut camera = set.p1();
-    camera.translation = translation - flag_direction_vector;
+    camera.translation = translation - flag_direction_vector * vec3(1.5, 1.5, 1.5);
+    camera.translation.y += 0.5;
     camera.look_at(translation, Vec3::Y);
 }
