@@ -7,6 +7,7 @@ use bevy::app::{App, Plugin, Startup, Update};
 use bevy::prelude::{Commands, Component, Entity, PostUpdate, Query, With, Without};
 use crate::animation::{FadeOutAnimation, LiftDownAnimation};
 use crate::generation::Prop;
+use crate::material::ground::Polynomial;
 
 pub(self) const CHUNK_SIZE_METERS: usize = 32;
 pub(self) const CHUNK_FIDELITY: usize = CHUNK_SIZE_METERS * 1;
@@ -16,6 +17,7 @@ pub struct Chunk {
     world_offset: [i32; 2],
     elevation: Box<[[f32; CHUNK_FIDELITY + 1]; CHUNK_FIDELITY + 1]>,
     props: Vec<Prop>,
+    course: Polynomial,
 }
 
 impl Chunk {
@@ -39,8 +41,9 @@ pub struct ChunkPlugin;
 
 impl Plugin for ChunkPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, |mut commands: Commands| {
-            commands.insert_resource(ChunkManager::new());
+        let seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as u32;
+        app.add_systems(Startup, move |mut commands: Commands| {
+            commands.insert_resource(ChunkManager::new(seed));
         })
         .add_systems(Update, generation::insert_chunk_mesh)
         .add_systems(Update, chunk_manager::load_chunks)

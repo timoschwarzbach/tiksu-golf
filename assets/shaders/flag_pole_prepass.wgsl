@@ -1,18 +1,13 @@
-#import bevy_pbr::forward_io::{VertexOutput, Vertex}
+#import bevy_render::globals::Globals
 #import bevy_pbr::mesh_functions::{get_world_from_local, mesh_position_local_to_clip}
-#import bevy_pbr::mesh_view_bindings::globals
-#import bevy_pbr::pbr_functions::apply_pbr_lighting
-#import bevy_pbr::pbr_fragment::pbr_input_from_standard_material
+#import bevy_pbr::prepass_io::VertexOutput
 
+@group(0) @binding(1) var<uniform> globals: Globals;
 
-@group(#{MATERIAL_BIND_GROUP}) @binding(100) var<uniform> material_color: vec4<f32>;
-
-@fragment
-fn fragment(input: VertexOutput, @builtin(front_facing) is_front: bool) -> @location(0) vec4<f32> {
-    var pbr_input = pbr_input_from_standard_material(input, is_front);
-    pbr_input.material.base_color = material_color;
-    return apply_pbr_lighting(pbr_input);
-}
+struct Vertex {
+    @builtin(instance_index) instance_index: u32,
+    @location(0) position: vec3<f32>,
+};
 
 @vertex
 fn vertex(vertex: Vertex) -> VertexOutput {
@@ -39,6 +34,5 @@ fn vertex(vertex: Vertex) -> VertexOutput {
         get_world_from_local(vertex.instance_index),
         displaced_position
     );
-
     return out;
 }

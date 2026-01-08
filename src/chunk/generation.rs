@@ -1,6 +1,5 @@
 use crate::chunk::{CHUNK_FIDELITY, CHUNK_SIZE_METERS, Chunk};
 use crate::generation::{Prop, TerrainGenerator};
-use crate::generation::grasslands::GrasslandsGenerator;
 use bevy::asset::{Assets, Handle, RenderAssetUsages};
 use bevy::gltf::GltfAssetLabel;
 use bevy::light::NotShadowCaster;
@@ -16,11 +15,8 @@ const CHUNKS_MESHED_PER_TICK: usize = 24;
 const WATER_HEIGHT: f32 = -4.0;
 
 impl Chunk {
-    pub fn generate_at(world_offset: [i32; 2]) -> Self {
+    pub fn generate_at(generator: &dyn TerrainGenerator, world_offset: [i32; 2]) -> Self {
         let mut elevation = Box::new([[0.0; CHUNK_FIDELITY + 1]; CHUNK_FIDELITY + 1]);
-
-        // TODO: store somewhere (?)
-        let generator = GrasslandsGenerator::new(42);
 
         for x in 0..=CHUNK_FIDELITY {
             for z in 0..=CHUNK_FIDELITY {
@@ -38,6 +34,7 @@ impl Chunk {
             world_offset,
             elevation,
             props,
+            course: generator.course_layout(),
         }
     }
 
@@ -128,11 +125,11 @@ pub(super) fn insert_chunk_mesh(
                     asset_server.load("textures/grass/Grass008_2K-PNG_NormalGL.png"),
                 ),
                 reflectance: 0.06,
-                //alpha_mode: AlphaMode::Blend,
+                alpha_mode: AlphaMode::AlphaToCoverage,
                 //base_color: Color::srgba(1.0, 1.0, 1.0, 0.0),
                 ..default()
             },
-            extension: GroundMaterial::new(),
+            extension: GroundMaterial::new(chunk.course.clone()),
         });
         let terrain_mesh_handle: Handle<Mesh> = meshes.add(chunk.generate_mesh());
         commands
