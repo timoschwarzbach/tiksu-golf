@@ -4,8 +4,10 @@ pub mod generation;
 
 use crate::chunk::chunk_manager::ChunkManager;
 use bevy::app::{App, Plugin, Startup, Update};
-use bevy::prelude::{Commands, Component, Entity, PostUpdate, Query, With, Without};
+use bevy::input::ButtonInput;
+use bevy::prelude::{Commands, Component, Entity, KeyCode, PostUpdate, Query, Res, ResMut, With, Without};
 use crate::animation::{FadeOutAnimation, LiftDownAnimation};
+use crate::generation::grasslands::GrasslandsGenerator;
 use crate::generation::Prop;
 use crate::material::ground::Polynomial;
 
@@ -48,7 +50,8 @@ impl Plugin for ChunkPlugin {
         .add_systems(Update, generation::insert_chunk_mesh)
         .add_systems(Update, chunk_manager::load_chunks)
         .add_systems(Update, chunk_manager::unload_chunks)
-        .add_systems(PostUpdate, despawn_unloaded_chunks);
+        .add_systems(PostUpdate, despawn_unloaded_chunks)
+        .add_systems(Update, regenerate_on_r);
     }
 }
 
@@ -58,5 +61,16 @@ struct ToUnload;
 fn despawn_unloaded_chunks(query: Query<Entity, (With<ToUnload>, Without<FadeOutAnimation>, Without<LiftDownAnimation>)>, mut commands: Commands) {
     for chunk in query {
         commands.entity(chunk).despawn();
+    }
+}
+
+fn regenerate_on_r(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut chunk_manager: ResMut<ChunkManager>,
+    mut commands: Commands,
+) {
+    if keyboard_input.just_pressed(KeyCode::KeyR) {
+        let seed = std::time::UNIX_EPOCH.elapsed().unwrap().as_secs() as u32;
+        chunk_manager.replace_generator(&mut commands, Box::new(GrasslandsGenerator::new(seed)));
     }
 }
