@@ -6,6 +6,7 @@ use crate::animation::{FadeOutAnimation, LiftDownAnimation};
 use crate::chunk::chunk_manager::ChunkManager;
 use crate::chunk::generation::WaterExtension;
 use crate::generation::Prop;
+use crate::material::ground::Polynomial;
 use bevy::app::{App, Plugin, Startup, Update};
 use bevy::pbr::ExtendedMaterial;
 use bevy::prelude::{
@@ -20,6 +21,7 @@ pub struct Chunk {
     world_offset: [i32; 2],
     elevation: Box<[[f32; CHUNK_FIDELITY + 1]; CHUNK_FIDELITY + 1]>,
     props: Vec<Prop>,
+    course: Polynomial,
 }
 
 impl Chunk {
@@ -43,11 +45,12 @@ pub struct ChunkPlugin;
 
 impl Plugin for ChunkPlugin {
     fn build(&self, app: &mut App) {
+        let seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as u32;
         app.add_plugins(MaterialPlugin::<
             ExtendedMaterial<StandardMaterial, WaterExtension>,
         >::default())
-            .add_systems(Startup, |mut commands: Commands| {
-                commands.insert_resource(ChunkManager::new());
+            .add_systems(Startup, move |mut commands: Commands| {
+            commands.insert_resource(ChunkManager::new(seed));
             })
             .add_systems(Update, generation::insert_chunk_mesh)
             .add_systems(Update, chunk_manager::load_chunks)

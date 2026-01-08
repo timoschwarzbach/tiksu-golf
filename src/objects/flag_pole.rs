@@ -8,6 +8,7 @@ use bevy::{
     render::render_resource::AsBindGroup,
     shader::ShaderRef,
 };
+use crate::chunk::chunk_manager::ChunkManager;
 
 pub struct FlagPolePlugin;
 
@@ -16,7 +17,7 @@ impl Plugin for FlagPolePlugin {
         app.add_plugins(MaterialPlugin::<
             ExtendedMaterial<StandardMaterial, FlagMaterialExtension>,
         >::default())
-            .add_systems(Startup, spawn_flag_pole);
+            .add_systems(PostStartup, spawn_flag_pole);
     }
 }
 
@@ -28,12 +29,16 @@ fn spawn_flag_pole(
     mut meshes: ResMut<Assets<Mesh>>,
     mut default_materials: ResMut<Assets<StandardMaterial>>,
     mut materials: ResMut<Assets<ExtendedMaterial<StandardMaterial, FlagMaterialExtension>>>,
+    chunk_manager: Res<ChunkManager>,
 ) {
+    let [x, z] = chunk_manager.generator.hole();
+    let y = chunk_manager.generator.height_at(x, z) + 0.5;
+
     commands
         .spawn((
             FlagPole,
             RigidBody::Static,
-            Transform::from_xyz(10.0, 3.0, 0.0),
+            Transform::from_xyz(x, y, z),
         ))
         .with_children(|builder| {
             builder.spawn((

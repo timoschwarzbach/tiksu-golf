@@ -89,10 +89,10 @@ fn input_handler(
         camera.rotate_y(-time.delta_secs());
     }
     if keyboard_input.pressed(KeyCode::ControlLeft) {
-        movement *= 10.0;
+        movement *= 5.0;
     }
 
-    camera.translation += movement * time.delta_secs() * 20.0;
+    camera.translation += movement * time.delta_secs() * 10.0;
 }
 
 #[derive(Resource)]

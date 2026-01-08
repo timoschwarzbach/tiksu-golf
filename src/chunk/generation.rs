@@ -1,8 +1,8 @@
 use crate::animation::LiftUpAnimation;
 use crate::chunk::chunk_manager::MeshGenerationPriority;
 use crate::chunk::{CHUNK_FIDELITY, CHUNK_SIZE_METERS, Chunk};
-use crate::generation::grasslands::GrasslandsGenerator;
 use crate::generation::{Prop, TerrainGenerator};
+use crate::material::ground::GroundMaterial;
 use bevy::asset::{Assets, Handle, RenderAssetUsages};
 use bevy::gltf::GltfAssetLabel;
 use bevy::image::{
@@ -13,7 +13,7 @@ use bevy::math::Dir3;
 use bevy::mesh::{Indices, Mesh, Mesh3d, Meshable, PrimitiveTopology};
 use bevy::pbr::{ExtendedMaterial, MaterialExtension, MeshMaterial3d, StandardMaterial};
 use bevy::prelude::{
-    AlphaMode, Asset, AssetServer, Color, Commands, Entity, Image, Plane3d, Query, Reflect, Res,
+    AlphaMode, Asset, AssetServer, Color, Commands, Cuboid, Entity, Image, Plane3d, Query, Reflect, Res,
     ResMut, SceneRoot, Time, Transform, Vec3, Without, default,
 };
 use bevy::render::render_resource::AsBindGroup;
@@ -23,11 +23,8 @@ const CHUNKS_MESHED_PER_TICK: usize = 24;
 const WATER_HEIGHT: f32 = -4.0;
 
 impl Chunk {
-    pub fn generate_at(world_offset: [i32; 2]) -> Self {
+    pub fn generate_at(generator: &dyn TerrainGenerator, world_offset: [i32; 2]) -> Self {
         let mut elevation = Box::new([[0.0; CHUNK_FIDELITY + 1]; CHUNK_FIDELITY + 1]);
-
-        // TODO: store somewhere (?)
-        let generator = GrasslandsGenerator::new(42);
 
         for x in 0..=CHUNK_FIDELITY {
             for z in 0..=CHUNK_FIDELITY {
@@ -45,6 +42,7 @@ impl Chunk {
             world_offset,
             elevation,
             props,
+            course: generator.course_layout(),
         }
     }
 
@@ -132,6 +130,7 @@ pub(super) fn insert_chunk_mesh(
     query: Query<(Entity, &Chunk, &MeshGenerationPriority), Without<Mesh3d>>,
     mut meshes: ResMut<Assets<Mesh>>,
     asset_server: Res<AssetServer>,
+    mut ground_materials: ResMut<Assets<ExtendedMaterial<StandardMaterial, GroundMaterial>>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut water_material: ResMut<Assets<ExtendedMaterial<StandardMaterial, WaterExtension>>>,
     mut commands: Commands,
@@ -143,17 +142,20 @@ pub(super) fn insert_chunk_mesh(
 
     for (entity, chunk, _) in selection {
         // terrain height mesh
-        let material = materials.add(StandardMaterial {
-            base_color_texture: Some(
-                asset_server.load("textures/grass/Grass008_2K-PNG_Color.png"),
-            ),
-            normal_map_texture: Some(
-                asset_server.load("textures/grass/Grass008_2K-PNG_NormalGL.png"),
-            ),
-            reflectance: 0.06,
-            //alpha_mode: AlphaMode::Blend,
-            //base_color: Color::srgba(1.0, 1.0, 1.0, 0.0),
-            ..default()
+        let material = ground_materials.add(ExtendedMaterial {
+            base: StandardMaterial {
+                base_color_texture: Some(
+                    asset_server.load("textures/grass/Grass008_2K-PNG_Color.png"),
+                ),
+                normal_map_texture: Some(
+                    asset_server.load("textures/grass/Grass008_2K-PNG_NormalGL.png"),
+                ),
+                reflectance: 0.06,
+                alpha_mode: AlphaMode::AlphaToCoverage,
+                //base_color: Color::srgba(1.0, 1.0, 1.0, 0.0),
+                ..default()
+            },
+            extension: GroundMaterial::new(chunk.course.clone()),
         });
         let normal_handle =
             asset_server.load_with_settings("textures/water/water0342normal.png", |s: &mut _| {
