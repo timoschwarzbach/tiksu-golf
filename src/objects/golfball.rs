@@ -32,7 +32,7 @@ fn spawn_golfball(
         RigidBody::Dynamic,
         Collider::sphere(radius),
         LinearVelocity::default(),
-        LinearDamping(0.5),                                // air resistance
+        LinearDamping(0.1),                                // air resistance
         Friction::new(100.0).with_static_coefficient(1.0), // friction todo: dependent on ground
         Mesh3d(meshes.add(Sphere::new(radius).mesh().ico(5).unwrap())),
         MeshMaterial3d(materials.add(Color::from(WHITE))),
