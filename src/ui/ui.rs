@@ -4,6 +4,10 @@ use crate::{
         course_info::{CourseFlagPlugin, spawn_course_info},
         distances::{spawn_distances_ui, update_distances_ui_system},
         flag_direction::FlagDirectionUiPlugin,
+        ground_info::{
+            hide_ground_info_ui_system, show_ground_info_ui_system, spawn_ground_info_ui,
+            update_ground_info_ui_system,
+        },
         wind_indicator::WindIndicatorPlugin,
     },
 };
@@ -17,7 +21,15 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_layout)
             .add_plugins((CourseFlagPlugin, WindIndicatorPlugin, FlagDirectionUiPlugin))
-            .add_systems(OnEnter(AppState::Aim), update_distances_ui_system);
+            .add_systems(
+                OnEnter(AppState::Aim),
+                (
+                    update_distances_ui_system,
+                    show_ground_info_ui_system,
+                    update_ground_info_ui_system,
+                ),
+            )
+            .add_systems(OnExit(AppState::Aim), hide_ground_info_ui_system);
     }
 }
 
@@ -85,12 +97,7 @@ fn spawn_layout(mut commands: Commands) {
                     );
 
                     // ground info
-                    spawn_nested_text_bundle(
-                        builder,
-                        Color::Srgba(RED),
-                        UiRect::default(),
-                        "Ground Info\n98-100",
-                    );
+                    spawn_ground_info_ui(builder);
                 });
         });
 }

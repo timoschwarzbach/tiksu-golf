@@ -1,18 +1,10 @@
 use bevy::{
     color::{Color, palettes::css::GREEN},
-    ecs::{
-        component::Component,
-        hierarchy::ChildSpawnerCommands,
-        query::With,
-        system::{Query, Res, Single},
-    },
-    math::vec2,
-    transform::components::Transform,
-    ui::{UiRect, widget::Text},
+    prelude::*,
 };
 
 use crate::{
-    chunk::chunk_manager::ChunkManager, generation::ZoneType, objects::golfball::Golfball,
+    chunk::chunk_manager::ChunkManager, objects::golfball::Golfball,
     ui::ui::spawn_nested_text_bundle_with_bundle,
 };
 
@@ -74,18 +66,4 @@ fn get_remaining_course_dist(
         vec2(golfball.translation.x, golfball.translation.z).distance(vec2(hole_x, hole_y));
     let height_diff = golfball.translation.y - hole_y;
     (remaining_dist, height_diff)
-}
-
-fn get_ground_info(
-    chunk_manager: Res<ChunkManager>,
-    golfball: Single<&Transform, With<Golfball>>,
-) -> &'static str {
-    let zone_type = chunk_manager
-        .generator
-        .zone_type_at(golfball.translation.x, golfball.translation.z);
-    match zone_type {
-        ZoneType::Clean => "98 - 100",
-        ZoneType::Offtrack => "80 - 90",
-        ZoneType::DeadZone => "0",
-    }
 }
