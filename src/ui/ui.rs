@@ -3,6 +3,7 @@ use crate::{
     ui::{
         course_info::{CourseFlagPlugin, spawn_course_info},
         distances::{spawn_distances_ui, update_distances_ui_system},
+        flag_direction::FlagDirectionUiPlugin,
         wind_indicator::WindIndicatorPlugin,
     },
 };
@@ -15,7 +16,7 @@ pub struct UiPlugin;
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_layout)
-            .add_plugins((CourseFlagPlugin, WindIndicatorPlugin))
+            .add_plugins((CourseFlagPlugin, WindIndicatorPlugin, FlagDirectionUiPlugin))
             .add_systems(OnEnter(AppState::Aim), update_distances_ui_system);
     }
 }
