@@ -25,7 +25,7 @@ pub struct FlagDirectionUiContainer;
 #[derive(Component)]
 pub struct FlagDirectionUi;
 
-pub fn spawn_flag_direction_ui(mut commands: Commands) {
+pub fn spawn_flag_direction_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     const MARGIN: Val = Val::Px(12.);
     commands
         .spawn((
@@ -42,6 +42,7 @@ pub fn spawn_flag_direction_ui(mut commands: Commands) {
             FlagDirectionUiContainer,
         ))
         .with_child((
+            ImageNode::new(asset_server.load("image/flag_icon.png")),
             Node {
                 width: px(50),
                 height: px(50),
@@ -52,7 +53,6 @@ pub fn spawn_flag_direction_ui(mut commands: Commands) {
                 },
                 ..Default::default()
             },
-            BackgroundColor(bevy::prelude::Color::Srgba(RED)),
             FlagDirectionUi,
         ));
 }
