@@ -1,18 +1,22 @@
-use bevy::{
-    color::palettes::css::{BLUE, GREEN, RED},
-    prelude::*,
+use crate::{
+    state::state::AppState,
+    ui::{
+        course_info::{CourseFlagPlugin, spawn_course_info},
+        distances::{spawn_distances_ui, update_distances_ui_system},
+        wind_indicator::WindIndicatorPlugin,
+    },
 };
-
-use crate::ui::{
-    course_info::{CourseFlagPlugin, spawn_course_info},
-    wind_indicator::WindIndicatorPlugin,
+use bevy::{
+    color::palettes::css::{BLUE, RED},
+    prelude::*,
 };
 
 pub struct UiPlugin;
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_layout)
-            .add_plugins((CourseFlagPlugin, WindIndicatorPlugin));
+            .add_plugins((CourseFlagPlugin, WindIndicatorPlugin))
+            .add_systems(OnEnter(AppState::Aim), update_distances_ui_system);
     }
 }
 
@@ -49,13 +53,8 @@ fn spawn_layout(mut commands: Commands) {
                             // course info
                             spawn_course_info(builder);
 
-                            // hole info
-                            spawn_nested_text_bundle(
-                                builder,
-                                Color::Srgba(GREEN),
-                                UiRect::default(),
-                                "PAR4 363m\nREST 205m\nDOWN 1m",
-                            );
+                            // hole info / distances
+                            spawn_distances_ui(builder);
                         });
 
                     // wind display
@@ -124,11 +123,22 @@ fn spawn_child_node(
         });
 }
 
-fn spawn_nested_text_bundle(
+pub(super) fn spawn_nested_text_bundle(
     builder: &mut ChildSpawnerCommands,
     background_color: Color,
     margin: UiRect,
     text: &str,
+) {
+    spawn_nested_text_bundle_with_bundle(builder, background_color, margin, text, (), ())
+}
+
+pub(super) fn spawn_nested_text_bundle_with_bundle<A: Bundle, B: Bundle>(
+    builder: &mut ChildSpawnerCommands,
+    background_color: Color,
+    margin: UiRect,
+    text: &str,
+    bundle_components: A,
+    child_bundle_components: B,
 ) {
     builder
         .spawn((
@@ -138,8 +148,14 @@ fn spawn_nested_text_bundle(
                 ..default()
             },
             BackgroundColor(background_color),
+            bundle_components,
         ))
         .with_children(|builder| {
-            builder.spawn((Text::new(text), TextFont { ..default() }, TextColor::BLACK));
+            builder.spawn((
+                Text::new(text),
+                TextFont { ..default() },
+                TextColor::BLACK,
+                child_bundle_components,
+            ));
         });
 }
