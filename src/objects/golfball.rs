@@ -1,6 +1,9 @@
 use crate::chunk::chunk_loader::ChunkLoader;
 use crate::{camera::ActiveCamera, state::state::AppState};
-use avian3d::prelude::{Collider, Friction, LinearDamping, LinearVelocity, RigidBody};
+use avian3d::prelude::{
+    AngularInertia, CoefficientCombine, Collider, Forces, Friction, LinearDamping, LinearVelocity,
+    Mass, Restitution, RigidBody,
+};
 use bevy::{color::palettes::css::WHITE, prelude::*};
 
 pub struct GolfballPlugin;
@@ -29,15 +32,22 @@ fn spawn_golfball(
     let radius = 0.021335;
     commands.spawn((
         Golfball { active: true },
-        RigidBody::Dynamic,
-        Collider::sphere(radius),
-        LinearVelocity::default(),
-        LinearDamping(0.1),                              // air resistance
-        Friction::new(1.0).with_static_coefficient(1.0), // friction todo: dependent on ground
+        Transform::from_xyz(0.0, 20.0, 0.0),
         Mesh3d(meshes.add(Sphere::new(radius).mesh().ico(5).unwrap())),
         MeshMaterial3d(materials.add(Color::from(WHITE))),
-        Transform::from_xyz(0.0, 20.0, 0.0),
         ChunkLoader::new(32.0),
+        RigidBody::Dynamic,
+        Collider::sphere(radius),
+        Mass(0.05),
+        AngularInertia::new(Vec3::splat(100.0)),
+        LinearVelocity::default(),
+        LinearDamping(0.1), // air resistance
+        Friction {
+            static_coefficient: 10000.0,
+            dynamic_coefficient: 10000000.0,
+            combine_rule: CoefficientCombine::Max,
+        }, // friction todo: dependent on ground
+        Restitution::new(0.2),
     ));
 }
 
