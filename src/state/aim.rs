@@ -1,4 +1,4 @@
-use avian3d::prelude::LinearVelocity;
+use avian3d::prelude::{Forces, RigidBodyForces};
 use bevy::color::palettes::css::ORANGE_RED;
 use bevy::color::palettes::tailwind::{BLUE_100, BLUE_300, BLUE_500, BLUE_700};
 use bevy::prelude::*;
@@ -121,7 +121,7 @@ fn execute_golfball_punch(
     transform: Single<&Transform, With<AimCamera>>,
     mut next_aim_challenge_state: ResMut<NextState<AimChallengeState>>,
     mut next_app_state: ResMut<NextState<AppState>>,
-    mut golfball_velocity: Single<&mut LinearVelocity, With<Golfball>>,
+    mut golfball_forces: Single<Forces, With<Golfball>>,
 ) {
     let mut missed = false;
     let power = aim_challenge_resource.power_marker.unwrap_or_default(); // 0 none ; 1 max
@@ -188,8 +188,8 @@ fn execute_golfball_punch(
         ..default()
     });
 
-    golfball_velocity.0 += final_direction * Vec3::splat(power * 100.0);
-    // golfball_velocity.0 = vec3(final_angle.x, 0.0, final_angle.y);
+    let force_vector = final_direction * Vec3::splat(power * 100.0);
+    golfball_forces.apply_force(force_vector);
 
     next_app_state.set(AppState::InShot);
     next_aim_challenge_state.set(AimChallengeState::Idle);
