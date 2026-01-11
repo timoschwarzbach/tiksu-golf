@@ -133,8 +133,8 @@ fn execute_golfball_punch(
     if let Some(precision) = aim_challenge_resource.precision_marker {
         if precision != 0.0 {
             let inaccuracy_yaw = rand::random_range(
-                precision.abs() * -std::f32::consts::FRAC_PI_2
-                    ..precision.abs() * std::f32::consts::FRAC_PI_2,
+                precision.abs() * -std::f32::consts::FRAC_PI_2 * 0.2
+                    ..precision.abs() * std::f32::consts::FRAC_PI_2 * 0.2,
             );
             inaccuracies = Quat::from_rotation_y(inaccuracy_yaw);
             // 0 +- 0.1 is precise
