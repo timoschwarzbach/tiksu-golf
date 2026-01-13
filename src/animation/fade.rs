@@ -19,7 +19,11 @@ impl FadeInAnimation {
 
 pub(super) fn update_fade_in_animation(
     time: Res<Time>,
-    query: Query<(Entity, &MeshMaterial3d<StandardMaterial>, &mut FadeInAnimation)>,
+    query: Query<(
+        Entity,
+        &MeshMaterial3d<StandardMaterial>,
+        &mut FadeInAnimation,
+    )>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut commands: Commands,
 ) {
@@ -59,7 +63,11 @@ impl FadeOutAnimation {
 
 pub(super) fn update_fade_out_animation(
     time: Res<Time>,
-    query: Query<(Entity, &MeshMaterial3d<StandardMaterial>, &mut FadeOutAnimation)>,
+    query: Query<(
+        Entity,
+        &MeshMaterial3d<StandardMaterial>,
+        &mut FadeOutAnimation,
+    )>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut commands: Commands,
 ) {

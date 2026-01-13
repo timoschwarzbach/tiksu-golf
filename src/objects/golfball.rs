@@ -32,8 +32,8 @@ fn spawn_golfball(
         RigidBody::Dynamic,
         Collider::sphere(radius),
         LinearVelocity::default(),
-        LinearDamping(0.8), // air resistance
-        Friction::new(0.8), // friction todo: dependent on ground
+        LinearDamping(0.1),                                // air resistance
+        Friction::new(100.0).with_static_coefficient(1.0), // friction todo: dependent on ground
         Mesh3d(meshes.add(Sphere::new(radius).mesh().ico(5).unwrap())),
         MeshMaterial3d(materials.add(Color::from(WHITE))),
         Transform::from_xyz(0.0, 20.0, 0.0),
@@ -52,7 +52,7 @@ fn input_handler(
     if keyboard_input.pressed(KeyCode::KeyR) {
         // reset velocity and transform for debug
         velocity.0 = Vec3::splat(0.0);
-        transform.translation = Vec3::new(0.0, 20.0, 0.0);
+        transform.translation = Vec3::new(0.0, 5.0, 0.0);
     }
 }
 
