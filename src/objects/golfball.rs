@@ -5,6 +5,9 @@ use avian3d::prelude::{
     LinearVelocity, Mass, Restitution, RigidBody,
 };
 use bevy::{color::palettes::css::WHITE, prelude::*};
+use crate::chunk::chunk_manager::ChunkManager;
+use crate::generation::grasslands::GrasslandsGenerator;
+use crate::objects::flag_pole::FlagPole;
 
 pub struct GolfballPlugin;
 impl Plugin for GolfballPlugin {
@@ -12,7 +15,7 @@ impl Plugin for GolfballPlugin {
         app.add_systems(Startup, spawn_golfball)
             .add_systems(
                 Update,
-                (input_handler, input_handler_golfball, update_rigid_mode),
+                (input_handler, input_handler_golfball, update_rigid_mode, regenerate_after_hitting_hole),
             )
             .add_systems(OnEnter(AppState::InShot), set_ball_active)
             .add_systems(OnExit(AppState::InShot), set_ball_inactive);
@@ -102,4 +105,32 @@ fn set_ball_active(mut golfball: Single<&mut Golfball>) {
 
 fn set_ball_inactive(mut golfball: Single<&mut Golfball>) {
     golfball.active = false
+}
+
+fn regenerate_after_hitting_hole(
+    mut golfball: Single<&mut Transform, (With<Golfball>, Without<FlagPole>)>,
+    mut flag_pole: Single<&mut Transform, (With<FlagPole>, Without<Golfball>)>,
+    mut chunk_manager: ResMut<ChunkManager>,
+    mut commands: Commands,
+) {
+    let [hole_x, hole_z] = chunk_manager.generator.hole();
+    let hole_y = chunk_manager.generator.height_at(hole_x, hole_z);
+
+    let on_hole = (golfball.translation.x - hole_x).abs() <= 0.5
+        && (golfball.translation.y - hole_y).abs() <= 0.2
+        && (golfball.translation.z - hole_z).abs() <= 0.5;
+
+    if !on_hole {
+        return;
+    }
+
+    let seed = std::time::UNIX_EPOCH.elapsed().unwrap().as_secs() as u32;
+    chunk_manager.replace_generator(&mut commands, Box::new(GrasslandsGenerator::new(seed)));
+
+    let [start_x, start_z] = chunk_manager.generator.start();
+    golfball.translation = Vec3::new(start_x, 10.0, start_z);
+
+    let [hole_x, hole_z] = chunk_manager.generator.hole();
+    let hole_y = chunk_manager.generator.height_at(hole_x, hole_z) + 0.5;
+    flag_pole.translation = Vec3::new(hole_x, hole_y, hole_z);
 }
