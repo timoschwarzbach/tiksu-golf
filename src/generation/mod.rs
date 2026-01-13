@@ -1,3 +1,4 @@
+use crate::chunk::Bunker;
 use crate::material::ground::Polynomial;
 
 pub mod grasslands;
@@ -17,6 +18,7 @@ pub enum ZoneType {
     DeadZone,
     Clean,
     Offtrack,
+    Bunker,
 }
 
 pub trait TerrainGenerator {
@@ -26,4 +28,5 @@ pub trait TerrainGenerator {
     fn start(&self) -> [f32; 2];
     fn hole(&self) -> [f32; 2];
     fn zone_type_at(&self, x: f32, y: f32) -> ZoneType;
+    fn nearest_bunker(&self, world_offset: [i32; 2]) -> Bunker;
 }

@@ -4,8 +4,10 @@ pub mod generation;
 
 use crate::chunk::chunk_manager::ChunkManager;
 use bevy::app::{App, Plugin, Startup, Update};
+use bevy::asset::Asset;
 use bevy::input::ButtonInput;
-use bevy::prelude::{Commands, Component, Entity, KeyCode, PostUpdate, Query, Res, ResMut, With, Without};
+use bevy::prelude::{Commands, Component, Entity, KeyCode, PostUpdate, Query, Reflect, Res, ResMut, With, Without};
+use bevy::render::render_resource::{AsBindGroup, ShaderType};
 use crate::animation::{FadeOutAnimation, LiftDownAnimation};
 use crate::generation::grasslands::GrasslandsGenerator;
 use crate::generation::Prop;
@@ -14,12 +16,36 @@ use crate::material::ground::Polynomial;
 pub(self) const CHUNK_SIZE_METERS: usize = 32;
 pub(self) const CHUNK_FIDELITY: usize = CHUNK_SIZE_METERS * 1;
 
+#[derive(Asset, AsBindGroup, Reflect, Debug, Clone, Default, ShaderType)]
+pub struct Bunker {
+    pub x: f32,
+    pub y: f32,
+    pub rot: f32,
+    pub size: f32,
+}
+
+impl Bunker {
+    pub fn dis(&self, x: f32, y: f32) -> f32 {
+        let dx = self.x - x;
+        let dy = self.y - y;
+
+        let s = self.rot.sin();
+        let c = self.rot.cos();
+
+        let rx = (dx * c + dy * s) / self.size;
+        let ry = (dy * c - dx * s) / self.size * 1.6;
+
+        (rx * rx + ry * ry).sqrt()
+    }
+}
+
 #[derive(Component)]
 pub struct Chunk {
     world_offset: [i32; 2],
     elevation: Box<[[f32; CHUNK_FIDELITY + 1]; CHUNK_FIDELITY + 1]>,
     props: Vec<Prop>,
     course: Polynomial,
+    bunker: Bunker,
 }
 
 impl Chunk {

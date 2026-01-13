@@ -3,6 +3,7 @@ use noise::NoiseFn;
 use noise::Perlin;
 use rand::rngs::StdRng;
 use rand::{Rng, RngCore, SeedableRng};
+use crate::chunk::Bunker;
 use crate::material::ground::Polynomial;
 /* Pipeline (one time):
  * 1. generate course / routes (single fixed line for now)
@@ -65,6 +66,14 @@ impl GrasslandsGenerator {
         }
     }
 
+    fn bunker_depth(&self, x: f32, y: f32) -> f32 {
+        let chunk_x = ((x / 32.0).floor() as i32) * 32;
+        let chunk_y = ((y / 32.0).floor() as i32) * 32;
+        let bunker = self.nearest_bunker([chunk_x, chunk_y]);
+        let result = (1.0 - bunker.dis(x, y)).max(0.0);
+        result.sqrt()
+    }
+
     fn local_height_at(&self, x: f64, y: f64) -> f64 {
         self.perlin.get([x / 12.0, y / 12.0]) * 0.15
             + self.perlin.get([x / 30.0, y / 30.0])
@@ -75,6 +84,7 @@ impl GrasslandsGenerator {
 impl TerrainGenerator for GrasslandsGenerator {
     fn height_at(&self, x: f32, y: f32) -> f32 {
         self.local_height_at(x as f64, y as f64) as f32
+            - self.bunker_depth(x, y)
     }
 
     fn props_in_chunk(&self, offset: (i32, i32)) -> Vec<Prop> {
@@ -119,10 +129,39 @@ impl TerrainGenerator for GrasslandsGenerator {
     fn zone_type_at(&self, x: f32, y: f32) -> ZoneType {
         if self.height_at(x, y) <= -3.0 {
             ZoneType::DeadZone
+        } else if self.bunker_depth(x, y) != 0.0 {
+            ZoneType::Bunker
         } else if self.course.on_clean_grass([x, y]) {
             ZoneType::Clean
         } else {
             ZoneType::Offtrack
+        }
+    }
+
+    fn nearest_bunker(&self, world_offset: [i32; 2]) -> Bunker {
+        let mut random = StdRng::seed_from_u64(world_offset[0] as u64 | ((self.seed as u64) << 32));
+
+        let mut x = world_offset[0] as f32 + random_range(&mut random, 15.0, 17.0);
+        let y = self.course.f(x) + random_range(&mut random, -200.0, 200.0);
+
+        if self.course.approx_distance_to_curve([x, y]) >= 35.0 || x < 20.0 || 280.0 < x {
+            return Bunker {
+                x: -1_000_000.0,
+                y: -1_000_000.0,
+                rot: 0.0,
+                size: 0.0,
+            }
+        }
+
+        let rot = random_range(&mut random, 0.0, std::f32::consts::PI);
+
+        let size = random_range(&mut random, 9.0, 15.0);
+
+        Bunker {
+            x,
+            y,
+            rot,
+            size,
         }
     }
 }
