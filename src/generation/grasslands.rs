@@ -139,12 +139,13 @@ impl TerrainGenerator for GrasslandsGenerator {
     }
 
     fn nearest_bunker(&self, world_offset: [i32; 2]) -> Bunker {
-        let mut random = StdRng::seed_from_u64(world_offset[0] as u64 | ((self.seed as u64) << 32));
+        let column = world_offset[0] | 63;
+        let mut random = StdRng::seed_from_u64(column as u64 | ((self.seed as u64) << 32));
 
-        let mut x = world_offset[0] as f32 + random_range(&mut random, 15.0, 17.0);
-        let y = self.course.f(x) + random_range(&mut random, -200.0, 200.0);
+        let x = column as f32 - random_range(&mut random, 29.0, 35.0);
+        let y = self.course.f(x) + random_range(&mut random, -170.0, 170.0);
 
-        if self.course.approx_distance_to_curve([x, y]) >= 35.0 || x < 20.0 || 280.0 < x {
+        if self.course.approx_distance_to_curve([x, y]) >= 32.0 || x < 20.0 || 280.0 < x {
             return Bunker {
                 x: -1_000_000.0,
                 y: -1_000_000.0,
@@ -155,7 +156,7 @@ impl TerrainGenerator for GrasslandsGenerator {
 
         let rot = random_range(&mut random, 0.0, std::f32::consts::PI);
 
-        let size = random_range(&mut random, 9.0, 15.0);
+        let size = random_range(&mut random, 18.0, 28.0);
 
         Bunker {
             x,
