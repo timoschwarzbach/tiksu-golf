@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use crate::chunk::chunk_loader::ChunkLoader;
 use crate::chunk::chunk_manager::ChunkManager;
 use crate::generation::grasslands::GrasslandsGenerator;
@@ -147,16 +149,15 @@ fn regenerate_after_hitting_hole(
 fn check_ball_moving_system(
     golfball_velocity: Single<&LinearVelocity, With<Golfball>>,
     time: Res<Time>,
-    mut duration: Local<Time>,
+    mut duration: Local<Duration>,
     mut game_state: ResMut<NextState<AppState>>,
 ) {
     let velocity = golfball_velocity.0.length();
-    if velocity < 0.05 {
-        // ball is considered stopped
-        duration.advance_by(time.delta());
+    if velocity < 0.1 {
+        *duration += time.delta();
     }
-    if duration.elapsed_secs() > 2.0 {
-        // ball has been stopped for more than 2 seconds
+    if *duration > Duration::from_secs(2) {
+        *duration = Duration::ZERO;
         game_state.set(AppState::Aim);
     }
 }
