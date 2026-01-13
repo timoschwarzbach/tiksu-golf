@@ -5,6 +5,8 @@ use bevy::{
 
 use crate::state::state::AppState;
 
+const AIM_CHALLENGE_SPEED: f32 = 0.75;
+
 pub struct ShootChallengePlugin;
 impl Plugin for ShootChallengePlugin {
     fn build(&self, app: &mut App) {
@@ -22,10 +24,11 @@ impl Plugin for ShootChallengePlugin {
                     update_power_cursor_marker,
                     update_power_indicator,
                     update_precision_cursor_marker,
-                    progress_cursor,
                 )
                     .run_if(in_state(AppState::Aim)),
-            );
+            )
+            .add_systems(PreUpdate, progress_cursor.run_if(in_state(AppState::Aim)))
+        ;
     }
 }
 
@@ -272,12 +275,14 @@ fn progress_cursor(
     mut data: ResMut<AimChallengeResource>,
     state: Res<State<AimChallengeState>>,
     mut next_state: ResMut<NextState<AimChallengeState>>,
+    time: Res<Time>,
 ) {
     if *state.get() == AimChallengeState::Forward {
-        data.cursor_pos += 0.015;
+        data.cursor_pos += time.delta_secs() * AIM_CHALLENGE_SPEED;
+        data.cursor_pos = data.cursor_pos.min(1.0);
     }
     if *state.get() == AimChallengeState::Reverse {
-        data.cursor_pos -= 0.015;
+        data.cursor_pos -= time.delta_secs() * AIM_CHALLENGE_SPEED;
     }
 
     if *state.get() == AimChallengeState::Forward && data.cursor_pos >= 1.0 {
