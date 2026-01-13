@@ -62,6 +62,7 @@ fn get_ground_info(
     match zone_type {
         ZoneType::Clean => "98-100",
         ZoneType::Offtrack => "80-90",
+        ZoneType::Bunker => "20-40",
         ZoneType::DeadZone => "0",
     }
 }
