@@ -1,10 +1,9 @@
-use bevy::app::{App, Update};
-use bevy::prelude::*;
-use bevy::render::render_resource::ShaderType;
 use crate::camera::ActiveCamera;
 use crate::objects::flag_pole::FlagPole;
 use crate::objects::golfball::Golfball;
 use crate::state::state::AppState;
+use bevy::app::{App, Update};
+use bevy::prelude::*;
 
 pub struct InShotPlugin;
 impl Plugin for InShotPlugin {

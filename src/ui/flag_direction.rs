@@ -1,6 +1,5 @@
 use std::f32::consts::PI;
 
-use bevy::color::palettes::basic::RED;
 use bevy::prelude::*;
 
 use crate::{

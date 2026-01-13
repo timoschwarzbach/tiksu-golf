@@ -133,7 +133,6 @@ pub(super) fn insert_chunk_mesh(
     mut meshes: ResMut<Assets<Mesh>>,
     asset_server: Res<AssetServer>,
     mut ground_materials: ResMut<Assets<ExtendedMaterial<StandardMaterial, GroundMaterial>>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut water_material: ResMut<Assets<ExtendedMaterial<StandardMaterial, WaterExtension>>>,
     mut commands: Commands,
 ) {

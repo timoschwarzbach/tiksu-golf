@@ -2,23 +2,21 @@ pub mod chunk_loader;
 pub mod chunk_manager;
 pub mod generation;
 
-
-use bevy::app::{App, Plugin, Startup, Update};
-use bevy::asset::Asset;
-use bevy::input::ButtonInput;
-use bevy::prelude::{Commands, Component, Entity, KeyCode, PostUpdate, Query, Reflect, Res, ResMut, With, Without};
-use bevy::render::render_resource::{AsBindGroup, ShaderType};
 use crate::animation::{FadeOutAnimation, LiftDownAnimation};
-use crate::generation::grasslands::GrasslandsGenerator;
 use crate::chunk::chunk_manager::ChunkManager;
 use crate::chunk::generation::WaterExtension;
 use crate::generation::Prop;
+use crate::generation::grasslands::GrasslandsGenerator;
 use crate::material::ground::Polynomial;
 use bevy::app::{App, Plugin, Startup, Update};
+use bevy::asset::Asset;
+use bevy::input::ButtonInput;
 use bevy::pbr::ExtendedMaterial;
 use bevy::prelude::{
-    Commands, Component, Entity, MaterialPlugin, PostUpdate, Query, StandardMaterial, With, Without,
+    Commands, Component, Entity, KeyCode, PostUpdate, Query, Reflect, Res, ResMut, With, Without,
 };
+use bevy::prelude::{MaterialPlugin, StandardMaterial};
+use bevy::render::render_resource::{AsBindGroup, ShaderType};
 
 pub(self) const CHUNK_SIZE_METERS: usize = 32;
 pub(self) const CHUNK_FIDELITY: usize = CHUNK_SIZE_METERS * 1;
@@ -76,7 +74,10 @@ pub struct ChunkPlugin;
 
 impl Plugin for ChunkPlugin {
     fn build(&self, app: &mut App) {
-        let seed = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs() as u32;
+        let seed = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as u32;
         app.add_plugins(MaterialPlugin::<
             ExtendedMaterial<StandardMaterial, WaterExtension>,
         >::default())

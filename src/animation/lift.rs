@@ -20,7 +20,7 @@ pub(super) fn update_lift_up_animation(
     query: Query<(Entity, &mut Transform, &mut LiftUpAnimation)>,
     mut commands: Commands,
 ) {
-    for (entity, mut transform, mut animation) in query {
+    for (entity, mut transform, animation) in query {
         let animation = animation.into_inner();
         animation.time_left -= time.delta_secs();
         if animation.time_left <= 0.0 {
@@ -32,7 +32,6 @@ pub(super) fn update_lift_up_animation(
         }
     }
 }
-
 
 #[derive(Component)]
 pub struct LiftDownAnimation {
@@ -56,7 +55,7 @@ pub(super) fn update_lift_down_animation(
     query: Query<(Entity, &mut Transform, &mut LiftDownAnimation)>,
     mut commands: Commands,
 ) {
-    for (entity, mut transform, mut animation) in query {
+    for (entity, mut transform, animation) in query {
         let animation = animation.into_inner();
         animation.seconds_passed += time.delta_secs();
 

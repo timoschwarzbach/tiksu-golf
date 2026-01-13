@@ -1,7 +1,6 @@
 use crate::chunk::Bunker;
 use crate::generation::{Prop, PropType, TerrainGenerator, ZoneType};
 use crate::material::ground::Polynomial;
-use crate::material::ground::Polynomial;
 use noise::NoiseFn;
 use noise::Perlin;
 use rand::rngs::StdRng;
@@ -80,12 +79,6 @@ impl GrasslandsGenerator {
             + self.perlin.get([x / 60.0, y / 60.0])
             + self.perlin.get([x / 240.0, y / 240.0]) * 6.0
     }
-}
-
-fn dist(from: [f32; 2], to: [f32; 2]) -> f32 {
-    let dx = from[0] - to[0];
-    let dy = from[1] - to[1];
-    (dx * dx + dy * dy).sqrt()
 }
 
 fn dist(from: [f32; 2], to: [f32; 2]) -> f32 {
