@@ -1,6 +1,5 @@
 use avian3d::prelude::{Forces, RigidBodyForces};
-use bevy::color::palettes::css::ORANGE_RED;
-use bevy::color::palettes::tailwind::{BLUE_100, BLUE_300, BLUE_500, BLUE_700};
+use bevy::ecs::system::SystemId;
 use bevy::prelude::*;
 use bevy::{
     app::{App, Update},
@@ -28,7 +27,11 @@ impl Plugin for AimStatePlugin {
             .add_systems(OnExit(AppState::Aim), unset_aim_state)
             .add_systems(
                 OnEnter(AimChallengeState::Finalized),
-                execute_golfball_punch,
+                delay_golfball_execute,
+            )
+            .add_systems(
+                Update,
+                wait_for_golfball_punch_delay.run_if(in_state(AimChallengeState::Finalized)),
             )
             .add_plugins(AimTiksuPlugin);
     }
@@ -113,10 +116,34 @@ fn input_handler(
     }
 }
 
-fn execute_golfball_punch(
-    mut commands: Commands,
-    mut gizmo_assets: ResMut<Assets<GizmoAsset>>,
+#[derive(Component)]
+struct GolfballPunchDelay(Timer);
 
+fn delay_golfball_execute(mut commands: Commands) {
+    let system_id = commands.register_system(execute_golfball_punch);
+    commands.spawn((
+        GolfballPunchDelay(Timer::from_seconds(3.0, TimerMode::Once)),
+        Callback(system_id),
+    ));
+}
+
+#[derive(Component)]
+struct Callback(SystemId);
+
+fn wait_for_golfball_punch_delay(
+    mut commands: Commands,
+    mut query: Query<(Entity, &mut GolfballPunchDelay, &Callback)>,
+    time: Res<Time>,
+) {
+    for (entity, mut delay, callback) in &mut query {
+        if delay.0.tick(time.delta()).just_finished() {
+            commands.run_system(callback.0);
+            commands.entity(entity).despawn();
+        }
+    }
+}
+
+fn execute_golfball_punch(
     aim_challenge_resource: Res<AimChallengeResource>,
     transform: Single<&Transform, With<AimCamera>>,
     mut next_aim_challenge_state: ResMut<NextState<AimChallengeState>>,
@@ -153,44 +180,11 @@ fn execute_golfball_punch(
     let combined_rotation = deviation * inaccuracies;
     let final_direction = combined_rotation * (club_direction + direction).normalize();
 
-    let mut gizmo = GizmoAsset::default();
-    gizmo.arrow(
-        transform.translation,
-        transform.translation + final_direction * Vec3::splat(power * 2.0),
-        ORANGE_RED,
-    );
-    gizmo.arrow(
-        transform.translation,
-        transform.translation + direction,
-        BLUE_100,
-    );
-    gizmo.arrow(
-        transform.translation,
-        transform.translation + (club_direction + direction).normalize(),
-        BLUE_300,
-    );
-    gizmo.arrow(
-        transform.translation,
-        transform.translation + inaccuracies * (club_direction + direction).normalize(),
-        BLUE_500,
-    );
-    gizmo.arrow(
-        transform.translation,
-        transform.translation + deviation * inaccuracies * (club_direction + direction).normalize(),
-        BLUE_700,
-    );
-    commands.spawn(Gizmo {
-        handle: gizmo_assets.add(gizmo),
-        line_config: GizmoLineConfig {
-            width: 4.,
-            ..default()
-        },
-        ..default()
-    });
-
     let force_vector = final_direction * Vec3::splat(power * 10.0);
-    golfball_forces.apply_force(force_vector);
 
+    // wait for tiksu
+
+    golfball_forces.apply_force(force_vector);
     next_app_state.set(AppState::InShot);
     next_aim_challenge_state.set(AimChallengeState::Idle);
 }
