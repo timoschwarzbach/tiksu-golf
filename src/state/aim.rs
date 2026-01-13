@@ -188,7 +188,7 @@ fn execute_golfball_punch(
         ..default()
     });
 
-    let force_vector = final_direction * Vec3::splat(power * 100.0);
+    let force_vector = final_direction * Vec3::splat(power * 10.0);
     golfball_forces.apply_force(force_vector);
 
     next_app_state.set(AppState::InShot);

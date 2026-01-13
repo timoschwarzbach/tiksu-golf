@@ -1,8 +1,8 @@
 use crate::chunk::chunk_loader::ChunkLoader;
 use crate::{camera::ActiveCamera, state::state::AppState};
 use avian3d::prelude::{
-    AngularInertia, CoefficientCombine, Collider, Forces, Friction, LinearDamping, LinearVelocity,
-    Mass, Restitution, RigidBody,
+    AngularDamping, AngularInertia, CoefficientCombine, Collider, Friction, LinearDamping,
+    LinearVelocity, Mass, Restitution, RigidBody,
 };
 use bevy::{color::palettes::css::WHITE, prelude::*};
 
@@ -38,14 +38,15 @@ fn spawn_golfball(
         ChunkLoader::new(32.0),
         RigidBody::Dynamic,
         Collider::sphere(radius),
-        Mass(0.05),
-        AngularInertia::new(Vec3::splat(100.0)),
+        Mass(0.005),
         LinearVelocity::default(),
-        LinearDamping(0.1), // air resistance
+        AngularInertia::new(Vec3::splat(0.9)),
+        AngularDamping(2.5),
+        LinearDamping(0.01), // air resistance
         Friction {
-            static_coefficient: 10000.0,
-            dynamic_coefficient: 10000000.0,
-            combine_rule: CoefficientCombine::Max,
+            static_coefficient: 0.5,
+            dynamic_coefficient: 1.0,
+            combine_rule: CoefficientCombine::Average,
         }, // friction todo: dependent on ground
         Restitution::new(0.2),
     ));
