@@ -5,7 +5,7 @@ use bevy::{
 
 use crate::state::state::AppState;
 
-const AIM_CHALLENGE_SPEED: f32 = 0.75;
+const AIM_CHALLENGE_SPEED: f32 = 0.8;
 
 pub struct ShootChallengePlugin;
 impl Plugin for ShootChallengePlugin {
