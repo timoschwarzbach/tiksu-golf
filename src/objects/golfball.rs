@@ -1,13 +1,13 @@
 use crate::chunk::chunk_loader::ChunkLoader;
+use crate::chunk::chunk_manager::ChunkManager;
+use crate::generation::grasslands::GrasslandsGenerator;
+use crate::objects::flag_pole::FlagPole;
 use crate::{camera::ActiveCamera, state::state::AppState};
 use avian3d::prelude::{
     AngularDamping, AngularInertia, CoefficientCombine, Collider, Friction, LinearDamping,
     LinearVelocity, Mass, Restitution, RigidBody,
 };
 use bevy::{color::palettes::css::WHITE, prelude::*};
-use crate::chunk::chunk_manager::ChunkManager;
-use crate::generation::grasslands::GrasslandsGenerator;
-use crate::objects::flag_pole::FlagPole;
 
 pub struct GolfballPlugin;
 impl Plugin for GolfballPlugin {
@@ -15,7 +15,16 @@ impl Plugin for GolfballPlugin {
         app.add_systems(Startup, spawn_golfball)
             .add_systems(
                 Update,
-                (input_handler, input_handler_golfball, update_rigid_mode, regenerate_after_hitting_hole),
+                (
+                    input_handler,
+                    input_handler_golfball,
+                    update_rigid_mode,
+                    regenerate_after_hitting_hole,
+                ),
+            )
+            .add_systems(
+                Update,
+                check_ball_moving_system.run_if(in_state(AppState::InShot)),
             )
             .add_systems(OnEnter(AppState::InShot), set_ball_active)
             .add_systems(OnExit(AppState::InShot), set_ball_inactive);
@@ -133,4 +142,21 @@ fn regenerate_after_hitting_hole(
     let [hole_x, hole_z] = chunk_manager.generator.hole();
     let hole_y = chunk_manager.generator.height_at(hole_x, hole_z) + 0.5;
     flag_pole.translation = Vec3::new(hole_x, hole_y, hole_z);
+}
+
+fn check_ball_moving_system(
+    golfball_velocity: Single<&LinearVelocity, With<Golfball>>,
+    time: Res<Time>,
+    mut duration: Local<Time>,
+    mut game_state: ResMut<NextState<AppState>>,
+) {
+    let velocity = golfball_velocity.0.length();
+    if velocity < 0.05 {
+        // ball is considered stopped
+        duration.advance_by(time.delta());
+    }
+    if duration.elapsed_secs() > 2.0 {
+        // ball has been stopped for more than 2 seconds
+        game_state.set(AppState::Aim);
+    }
 }
