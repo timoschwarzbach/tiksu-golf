@@ -71,7 +71,7 @@ impl GrasslandsGenerator {
         let chunk_y = ((y / 32.0).floor() as i32) * 32;
         let bunker = self.nearest_bunker([chunk_x, chunk_y]);
         let result = (1.0 - bunker.dis(x, y)).max(0.0);
-        result.sqrt()
+        result.sqrt() * 1.2
     }
 
     fn local_height_at(&self, x: f64, y: f64) -> f64 {
