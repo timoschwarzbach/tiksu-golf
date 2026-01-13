@@ -35,7 +35,7 @@ fn spawn_golfball(
     let radius = 0.021335;
     commands.spawn((
         Golfball { active: true },
-        Transform::from_xyz(0.0, 20.0, 0.0),
+        Transform::from_xyz(0.0, 10.0, 0.0),
         Mesh3d(meshes.add(Sphere::new(radius).mesh().ico(5).unwrap())),
         MeshMaterial3d(materials.add(Color::from(WHITE))),
         ChunkLoader::new(32.0),
