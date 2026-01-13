@@ -1,10 +1,11 @@
+use crate::chunk::Bunker;
 use crate::generation::{Prop, PropType, TerrainGenerator, ZoneType};
+use crate::material::ground::Polynomial;
+use crate::material::ground::Polynomial;
 use noise::NoiseFn;
 use noise::Perlin;
 use rand::rngs::StdRng;
 use rand::{Rng, RngCore, SeedableRng};
-use crate::chunk::Bunker;
-use crate::material::ground::Polynomial;
 /* Pipeline (one time):
  * 1. generate course / routes (single fixed line for now)
  *   - start and end location
@@ -75,10 +76,16 @@ impl GrasslandsGenerator {
     }
 
     fn local_height_at(&self, x: f64, y: f64) -> f64 {
-        self.perlin.get([x / 12.0, y / 12.0]) * 0.15
-            + self.perlin.get([x / 30.0, y / 30.0])
-            + self.perlin.get([x / 120.0, y / 120.0]) * 6.0
+        self.perlin.get([x / 24.0, y / 24.0]) * 0.15
+            + self.perlin.get([x / 60.0, y / 60.0])
+            + self.perlin.get([x / 240.0, y / 240.0]) * 6.0
     }
+}
+
+fn dist(from: [f32; 2], to: [f32; 2]) -> f32 {
+    let dx = from[0] - to[0];
+    let dy = from[1] - to[1];
+    (dx * dx + dy * dy).sqrt()
 }
 
 fn dist(from: [f32; 2], to: [f32; 2]) -> f32 {
@@ -89,10 +96,8 @@ fn dist(from: [f32; 2], to: [f32; 2]) -> f32 {
 
 impl TerrainGenerator for GrasslandsGenerator {
     fn height_at(&self, x: f32, y: f32) -> f32 {
-        let height = self.local_height_at(x as f64, y as f64) as f32
-            - self.bunker_depth(x, y);
-        let dist_to_start_or_hole = dist(self.start(), [x, y])
-            .min(dist(self.hole(), [x, y]));
+        let height = self.local_height_at(x as f64, y as f64) as f32 - self.bunker_depth(x, y);
+        let dist_to_start_or_hole = dist(self.start(), [x, y]).min(dist(self.hole(), [x, y]));
         // ensure start and hole are never underwater
         let min_height = -3.85 - (dist_to_start_or_hole * 0.07).powi(4);
         height.max(min_height)
@@ -167,18 +172,13 @@ impl TerrainGenerator for GrasslandsGenerator {
                 y: -1_000_000.0,
                 rot: 0.0,
                 size: 0.0,
-            }
+            };
         }
 
         let rot = random_range(&mut random, 0.0, std::f32::consts::PI);
 
         let size = random_range(&mut random, 18.0, 28.0);
 
-        Bunker {
-            x,
-            y,
-            rot,
-            size,
-        }
+        Bunker { x, y, rot, size }
     }
 }

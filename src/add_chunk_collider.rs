@@ -21,6 +21,11 @@ pub fn create_collider_from_mesh(
                 CollisionMargin(10.0),
                 Transform::from_xyz(0.0, -10.0, 0.0),
                 RigidBody::Static,
+                // Friction {
+                //     static_coefficient: 100000.0,
+                //     dynamic_coefficient: 1.0,
+                //     combine_rule: CoefficientCombine::Multiply,
+                // },
             ))
             .id();
         commands
