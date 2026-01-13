@@ -19,8 +19,16 @@ const COURSE_WIDTH: f32 = 25.0;
 
 struct GroundMaterial {
     course: Polynomial,
+    bunker: Bunker,
     start_x: f32,
     end_x: f32,
+}
+
+struct Bunker {
+    x: f32,
+    y: f32,
+    rot: f32,
+    size: f32,
 }
 
 struct Polynomial {
@@ -65,6 +73,19 @@ fn on_clean_grass(polynomial: Polynomial, p: vec2<f32>) -> bool {
     }
 }
 
+fn in_bunker(bunker: Bunker, p: vec2<f32>) -> bool {
+    let x = bunker.x - p.x;
+    let y = bunker.y - p.y;
+
+    let s = sin(bunker.rot);
+    let c = cos(bunker.rot);
+
+    let rx = (x * c + y * s) / bunker.size;
+    let ry = (y * c - x * s) / bunker.size * 1.6;
+
+    return rx * rx + ry * ry < 1.0;
+}
+
 fn in_hole(polynomial: Polynomial, p: vec2<f32>) -> bool {
     let dx = 300.0 - p.x;
     let dy = f(polynomial, 300.0) - p.y;
@@ -89,7 +110,11 @@ fn fragment(
 
     let polynomial = ground_material.course;
 
-    if !on_clean_grass(polynomial, in.world_position.xz) {
+    if in_bunker(ground_material.bunker, in.world_position.xz) {
+        out.color.b = 0.0;
+        out.color.r = out.color.g;
+        out.color.g *= 0.8;
+    } else if !on_clean_grass(polynomial, in.world_position.xz) {
         // we can optionally modify the lit color before post-processing is applied
         out.color = vec4<f32>(out.color.rgb * 0.65, out.color.a);
     }

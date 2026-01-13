@@ -21,6 +21,14 @@ impl ChunkManager {
         }
     }
 
+    pub fn replace_generator(&mut self, commands: &mut Commands, generator: Box<dyn TerrainGenerator + Send + Sync>) -> Box<dyn TerrainGenerator + Send + Sync> {
+        let result = std::mem::replace(&mut self.generator, generator);
+        for chunk_pos in self.chunks.keys().cloned().collect::<Vec<_>>() {
+            self.unload_chunk(commands, chunk_pos);
+        }
+        result
+    }
+
     pub fn height_at(&self, chunks: Query<(Entity, &Chunk)>, x: f32, z: f32) -> Option<f32> {
         let chunk_pos = (
             (x / CHUNK_SIZE_METERS as f32).floor() as i32,

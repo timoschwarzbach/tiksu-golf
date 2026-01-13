@@ -2,6 +2,7 @@ use bevy::pbr::MaterialExtension;
 use bevy::prelude::*;
 use bevy::render::render_resource::{AsBindGroup, ShaderType};
 use bevy::shader::ShaderRef;
+use crate::chunk::Bunker;
 
 const SHADER_ASSET_PATH: &str = "shaders/ground_material.wgsl";
 
@@ -60,17 +61,20 @@ pub struct GroundMaterial {
     #[uniform(100)]
     course: Polynomial,
     #[uniform(100)]
+    bunker: Bunker,
+    #[uniform(100)]
     start_x: f32,
     #[uniform(100)]
     end_x: f32,
 }
 
 impl GroundMaterial {
-    pub fn new(course: Polynomial) -> Self {
+    pub fn new(course: Polynomial, bunker: Bunker) -> Self {
         GroundMaterial {
             course,
             start_x: 0.0,
             end_x: 300.0,
+            bunker,
         }
     }
 }

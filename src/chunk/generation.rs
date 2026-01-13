@@ -37,12 +37,14 @@ impl Chunk {
         }
 
         let props = generator.props_in_chunk((world_offset[0], world_offset[1]));
+        let bunker = generator.nearest_bunker(world_offset);
 
         Chunk {
             world_offset,
             elevation,
             props,
             course: generator.course_layout(),
+            bunker,
         }
     }
 
@@ -155,7 +157,7 @@ pub(super) fn insert_chunk_mesh(
                 //base_color: Color::srgba(1.0, 1.0, 1.0, 0.0),
                 ..default()
             },
-            extension: GroundMaterial::new(chunk.course.clone()),
+            extension: GroundMaterial::new(chunk.course.clone(), chunk.bunker.clone()),
         });
         let normal_handle =
             asset_server.load_with_settings("textures/water/water0342normal.png", |s: &mut _| {
