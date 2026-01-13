@@ -81,10 +81,21 @@ impl GrasslandsGenerator {
     }
 }
 
+fn dist(from: [f32; 2], to: [f32; 2]) -> f32 {
+    let dx = from[0] - to[0];
+    let dy = from[1] - to[1];
+    (dx * dx + dy * dy).sqrt()
+}
+
 impl TerrainGenerator for GrasslandsGenerator {
     fn height_at(&self, x: f32, y: f32) -> f32 {
-        self.local_height_at(x as f64, y as f64) as f32
-            - self.bunker_depth(x, y)
+        let height = self.local_height_at(x as f64, y as f64) as f32
+            - self.bunker_depth(x, y);
+        let dist_to_start_or_hole = dist(self.start(), [x, y])
+            .min(dist(self.hole(), [x, y]));
+        // ensure start and hole are never underwater
+        let min_height = -3.7 - (dist_to_start_or_hole * 0.075).powi(4);
+        height.max(min_height)
     }
 
     fn props_in_chunk(&self, offset: (i32, i32)) -> Vec<Prop> {
