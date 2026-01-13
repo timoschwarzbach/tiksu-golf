@@ -94,7 +94,7 @@ impl TerrainGenerator for GrasslandsGenerator {
         let dist_to_start_or_hole = dist(self.start(), [x, y])
             .min(dist(self.hole(), [x, y]));
         // ensure start and hole are never underwater
-        let min_height = -3.7 - (dist_to_start_or_hole * 0.075).powi(4);
+        let min_height = -3.85 - (dist_to_start_or_hole * 0.07).powi(4);
         height.max(min_height)
     }
 
