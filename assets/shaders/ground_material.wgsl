@@ -89,7 +89,7 @@ fn in_bunker(bunker: Bunker, p: vec2<f32>) -> bool {
 fn in_hole(polynomial: Polynomial, p: vec2<f32>) -> bool {
     let dx = 300.0 - p.x;
     let dy = f(polynomial, 300.0) - p.y;
-    return dx * dx + dy * dy < 0.054;
+    return dx * dx + dy * dy < 0.025;
 }
 
 @fragment
