@@ -18,6 +18,7 @@ use crate::{
         aim::AimStatePlugin,
         inshot::InShotPlugin,
         postscore::PostScorePlugin,
+        presentcourse::PresentCoursePlugin,
         regenerate::RegenPlugin,
         state::{AppState, debug_state_change_input_handler},
     },
@@ -41,6 +42,7 @@ fn main() {
             InShotPlugin,
             PostScorePlugin,
             RegenPlugin,
+            PresentCoursePlugin,
             FlagPolePlugin,
             CustomMaterialsPlugin,
         ))
