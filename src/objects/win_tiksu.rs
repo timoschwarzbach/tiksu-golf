@@ -51,7 +51,12 @@ fn spawn_win_tiksu(
     let hole_to_start = (vec3(hole_x, 0.0, hole_z) - vec3(start_x, 0.0, start_z)).normalize();
     let sideway = Vec3::Y.cross(hole_to_start).normalize();
 
-    let tiksu_position = hole + vec3(0.0, 0.5, 0.0) + sideway * 3.0;
+    let tiksu_position_xz = hole + sideway * 3.0;
+    let tiksu_position_y = chunk_manager
+        .generator
+        .height_at(tiksu_position_xz.x, tiksu_position_xz.z)
+        + 1.4;
+    let tiksu_position = vec3(tiksu_position_xz.x, tiksu_position_y, tiksu_position_xz.z);
     tiksu_transform.translation = tiksu_position;
     tiksu_transform.look_at(tiksu_position + hole_to_start, Vec3::Y);
 
