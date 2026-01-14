@@ -151,7 +151,7 @@ pub(super) fn insert_chunk_mesh(
                 normal_map_texture: Some(
                     asset_server.load("textures/grass/Grass008_2K-PNG_NormalGL.png"),
                 ),
-                reflectance: 0.06,
+                reflectance: 0.02,
                 alpha_mode: AlphaMode::AlphaToCoverage,
                 //base_color: Color::srgba(1.0, 1.0, 1.0, 0.0),
                 ..default()
