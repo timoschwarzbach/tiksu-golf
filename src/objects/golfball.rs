@@ -21,12 +21,12 @@ impl Plugin for GolfballPlugin {
                     input_handler,
                     input_handler_golfball,
                     update_rigid_mode,
-                    regenerate_after_hitting_hole,
                 ),
             )
             .add_systems(
                 Update,
-                check_ball_moving_system.run_if(in_state(AppState::InShot)),
+                (check_ball_moving_system, regenerate_after_hitting_hole)
+                    .run_if(in_state(AppState::InShot)),
             )
             .add_systems(OnEnter(AppState::InShot), set_ball_active)
             .add_systems(OnExit(AppState::InShot), set_ball_inactive);
