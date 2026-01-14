@@ -4,12 +4,12 @@ use bevy::prelude::*;
 pub enum AppState {
     Debug,
     // LevelTransition, -> Tell world generator to generate a new level and animate its creation
-    PresentCourse, // -> Camera flyover over the course
     #[default]
     Aim, // -> aim, shoot, main in-game state
-    InShot,        // -> camera following the golf ball, looking at it, etc.
-    PostScore,     // -> after the ball has entered the hole tbd.
-                   // Paused,
+    InShot,    // -> camera following the golf ball, looking at it, etc.
+    PostScore, // -> after the ball has entered the hole tbd.
+    Regenerate, // -> Camera over the course
+               // Paused,
 }
 
 pub fn debug_state_change_input_handler(
@@ -20,7 +20,7 @@ pub fn debug_state_change_input_handler(
         next_state.set(AppState::Debug);
     }
     if keyboard_input.just_pressed(KeyCode::Digit1) {
-        next_state.set(AppState::PresentCourse);
+        next_state.set(AppState::Regenerate);
     }
     if keyboard_input.just_pressed(KeyCode::Digit2) {
         next_state.set(AppState::Aim);

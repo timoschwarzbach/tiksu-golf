@@ -17,7 +17,10 @@ impl Plugin for AimTiksuPlugin {
         app.add_systems(OnEnter(AppState::Aim), spawn_aim_tiksu)
             .add_systems(OnExit(AppState::Aim), remove_aim_tiksu)
             .add_systems(Update, update_aim_tiksu_position)
-            .add_systems(Update, setup_scene_once_loaded)
+            .add_systems(
+                Update,
+                setup_scene_once_loaded.run_if(in_state(AppState::Aim)),
+            )
             .add_systems(
                 OnEnter(AimChallengeState::Finalized),
                 let_tiksu_punch_the_ball,
@@ -41,7 +44,6 @@ fn spawn_aim_tiksu(
 ) {
     let (graph, indicies) = AnimationGraph::from_clips([
         asset_server.load(GltfAssetLabel::Animation(0).from_asset(GLTF_PATH)), // aim
-        asset_server.load(GltfAssetLabel::Animation(1).from_asset(GLTF_PATH)), // chopper
         asset_server.load(GltfAssetLabel::Animation(2).from_asset(GLTF_PATH)), // shoot
     ]);
     let graph_handle = graphs.add(graph);
@@ -121,7 +123,7 @@ fn let_tiksu_punch_the_ball(
     animations: Res<Animations>,
 ) {
     for (mut player, mut transitions) in &mut animation_players {
-        transitions.play(&mut player, animations.animations[2], Duration::ZERO);
+        transitions.play(&mut player, animations.animations[1], Duration::ZERO);
         // transitions.play(&mut player, animations.animations[0], Duration::ZERO)
     }
 }
