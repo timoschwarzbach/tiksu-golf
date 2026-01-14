@@ -12,6 +12,7 @@ use crate::objects::flag_pole::FlagPole;
 use crate::objects::golfball::Golfball;
 use crate::state::state::AppState;
 use crate::ui::shoot_challenge::{AimChallengeResource, AimChallengeState};
+use crate::ui::trajectory::TrajectoryPlugin;
 
 pub struct AimStatePlugin;
 impl Plugin for AimStatePlugin {
@@ -33,7 +34,7 @@ impl Plugin for AimStatePlugin {
                 Update,
                 wait_for_golfball_punch_delay.run_if(in_state(AimChallengeState::Finalized)),
             )
-            .add_plugins(AimTiksuPlugin);
+            .add_plugins((AimTiksuPlugin, TrajectoryPlugin));
     }
 }
 
