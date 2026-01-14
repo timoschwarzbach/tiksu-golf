@@ -4,7 +4,7 @@ pub mod generation;
 
 use crate::animation::{FadeOutAnimation, LiftDownAnimation};
 use crate::chunk::chunk_manager::ChunkManager;
-use crate::chunk::generation::WaterExtension;
+use crate::chunk::generation::{WaterExtension, change_tree_material};
 use crate::generation::Prop;
 use crate::generation::grasslands::GrasslandsGenerator;
 use crate::material::ground::Polynomial;
@@ -89,7 +89,8 @@ impl Plugin for ChunkPlugin {
             .add_systems(Update, chunk_manager::unload_chunks)
             .add_systems(Update, generation::update_material_time)
             .add_systems(PostUpdate, despawn_unloaded_chunks)
-            .add_systems(Update, regenerate_on_r);
+            .add_systems(Update, regenerate_on_r)
+            .add_observer(change_tree_material);
     }
 }
 
