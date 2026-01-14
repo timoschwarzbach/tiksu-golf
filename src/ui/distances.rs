@@ -16,7 +16,7 @@ pub(super) fn spawn_distances_ui(builder: &mut ChildSpawnerCommands) {
         builder,
         Color::Srgba(GREEN),
         UiRect::default(),
-        "PAR4 363m\nREST 205m\nDOWN 1m",
+        "DIST 363m\nREST 205m\nDOWN 1m",
         (),
         DistancesText,
     );
@@ -42,7 +42,7 @@ pub(super) fn update_distances_ui_system(
             ("UP", remaining_height.abs())
         };
         **text = String::from(format!(
-            "PAR4 {}m\nREST {}m\n{height_label} {}m",
+            "DIST {}m\nREST {}m\n{height_label} {}m",
             course_length.round(),
             remaining_dist.round(),
             height_val.round()
