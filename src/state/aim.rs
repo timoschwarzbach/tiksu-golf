@@ -7,6 +7,8 @@ use bevy::{
 };
 
 use crate::camera::ActiveCamera;
+use crate::chunk::chunk_manager::ChunkManager;
+use crate::generation::ZoneType;
 use crate::objects::aim_tiksu::AimTiksuPlugin;
 use crate::objects::flag_pole::FlagPole;
 use crate::objects::golfball::Golfball;
@@ -149,6 +151,7 @@ fn execute_golfball_punch(
     mut next_aim_challenge_state: ResMut<NextState<AimChallengeState>>,
     mut next_app_state: ResMut<NextState<AppState>>,
     mut golfball_forces: Single<Forces, With<Golfball>>,
+    chunk_manager: Res<ChunkManager>,
 ) {
     let mut missed = false;
     let power = aim_challenge_resource.power_marker.unwrap_or_default(); // 0 none ; 1 max
@@ -180,7 +183,17 @@ fn execute_golfball_punch(
     let combined_rotation = deviation * inaccuracies;
     let final_direction = combined_rotation * (club_direction + direction).normalize();
 
-    let force_vector = final_direction * Vec3::splat(power * 10.0);
+    let zone_type = chunk_manager
+        .generator
+        .zone_type_at(transform.translation.x, transform.translation.z);
+    let power_ground_multiplier = match zone_type {
+        ZoneType::DeadZone => 0.0,
+        ZoneType::Clean => rand::random_range(0.98..1.0),
+        ZoneType::Offtrack => rand::random_range(0.8..0.9),
+        ZoneType::Bunker => rand::random_range(0.2..0.4),
+    };
+
+    let force_vector = final_direction * Vec3::splat(power * power_ground_multiplier * 10.0);
 
     // wait for tiksu
 
