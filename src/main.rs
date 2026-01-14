@@ -18,6 +18,7 @@ use crate::{
         aim::AimStatePlugin,
         inshot::InShotPlugin,
         postscore::PostScorePlugin,
+        regenerate::RegenPlugin,
         state::{AppState, debug_state_change_input_handler},
     },
     ui::shoot_challenge::ShootChallengePlugin,
@@ -39,6 +40,7 @@ fn main() {
             ShootChallengePlugin,
             InShotPlugin,
             PostScorePlugin,
+            RegenPlugin,
             FlagPolePlugin,
             CustomMaterialsPlugin,
         ))
