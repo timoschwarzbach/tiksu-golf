@@ -9,6 +9,7 @@ use avian3d::prelude::{
     LinearVelocity, Mass, Restitution, RigidBody,
 };
 use bevy::{color::palettes::css::WHITE, prelude::*};
+use crate::generation::ZoneType;
 
 pub struct GolfballPlugin;
 impl Plugin for GolfballPlugin {
@@ -37,6 +38,17 @@ pub struct Golfball {
     active: bool,
 }
 
+#[derive(Component)]
+struct PrevPosition {
+    xyz: Vec3,
+}
+
+impl PrevPosition {
+    fn new(xyz: Vec3) -> Self {
+        Self { xyz }
+    }
+}
+
 fn spawn_golfball(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -46,6 +58,7 @@ fn spawn_golfball(
     commands.spawn((
         Golfball { active: true },
         Transform::from_xyz(0.0, 10.0, 0.0),
+        PrevPosition::new(Vec3::new(0.0, 10.0, 0.0)),
         Mesh3d(meshes.add(Sphere::new(radius).mesh().ico(5).unwrap())),
         MeshMaterial3d(materials.add(Color::from(WHITE))),
         ChunkLoader::new(32.0),
@@ -135,16 +148,26 @@ fn regenerate_after_hitting_hole(
 }
 
 fn check_ball_moving_system(
-    golfball_velocity: Single<&LinearVelocity, With<Golfball>>,
+    mut golfball: Single<(&LinearVelocity, &mut Transform, &mut PrevPosition), With<Golfball>>,
     time: Res<Time>,
     mut duration: Local<Duration>,
     mut game_state: ResMut<NextState<AppState>>,
+    chunk_manager: Res<ChunkManager>,
 ) {
-    let velocity = golfball_velocity.0.length();
+    let velocity = golfball.0.0.length();
     if velocity < 0.1 {
         *duration += time.delta();
     }
     if *duration > Duration::from_secs(2) {
+        // reset if in water or store current position if not
+        let x = golfball.1.translation.x;
+        let z = golfball.1.translation.z;
+        if chunk_manager.generator.zone_type_at(x, z) == ZoneType::DeadZone {
+            golfball.1.translation = golfball.2.xyz;
+        } else {
+            golfball.2.xyz = golfball.1.translation;
+        }
+
         *duration = Duration::ZERO;
         game_state.set(AppState::Aim);
     }
