@@ -15,7 +15,10 @@ impl Plugin for RegenPlugin {
             OnEnter(AppState::Regenerate),
             (place_regen_camera, delay_course_regen, delay_state_change),
         )
-        .add_systems(Update, wait_for_delayed_systems);
+        .add_systems(
+            Update,
+            wait_for_delayed_systems.run_if(in_state(AppState::Regenerate)),
+        );
     }
 }
 
@@ -85,5 +88,5 @@ fn regenerate_course(
 }
 
 fn continue_game(mut state: ResMut<NextState<AppState>>) {
-    state.set(AppState::InShot);
+    state.set(AppState::PresentCourse);
 }
