@@ -8,7 +8,7 @@ use bevy::ui::Node;
 
 use crate::camera::ActiveCamera;
 
-const GLTF_PATH: &str = "model/tiksu.glb";
+const GLTF_PATH: &str = "model/wind_indicator.glb";
 const WIND_INDICATOR_LAYER: RenderLayers = RenderLayers::layer(1);
 
 #[derive(Component)]
