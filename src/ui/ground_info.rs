@@ -61,7 +61,7 @@ fn get_ground_info(
         .zone_type_at(golfball.translation.x, golfball.translation.z);
     match zone_type {
         ZoneType::Clean => "98-100",
-        ZoneType::Offtrack => "80-90",
+        ZoneType::Offtrack => "60-80",
         ZoneType::Bunker => "20-40",
         ZoneType::DeadZone => "0",
     }

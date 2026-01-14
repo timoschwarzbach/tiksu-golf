@@ -190,7 +190,7 @@ fn execute_golfball_punch(
     let power_ground_multiplier = match zone_type {
         ZoneType::DeadZone => 0.0,
         ZoneType::Clean => rand::random_range(0.98..1.0),
-        ZoneType::Offtrack => rand::random_range(0.8..0.9),
+        ZoneType::Offtrack => rand::random_range(0.6..0.8),
         ZoneType::Bunker => rand::random_range(0.2..0.4),
     };
 
