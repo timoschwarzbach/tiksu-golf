@@ -16,10 +16,10 @@ impl Plugin for AimTiksuPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(AppState::Aim), spawn_aim_tiksu)
             .add_systems(OnExit(AppState::Aim), remove_aim_tiksu)
-            .add_systems(Update, update_aim_tiksu_position)
             .add_systems(
                 Update,
-                setup_scene_once_loaded.run_if(in_state(AppState::Aim)),
+                (setup_scene_once_loaded, update_aim_tiksu_position)
+                    .run_if(in_state(AppState::Aim)),
             )
             .add_systems(
                 OnEnter(AimChallengeState::Finalized),
