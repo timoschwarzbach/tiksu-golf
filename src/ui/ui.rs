@@ -21,10 +21,10 @@ impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_layout)
             .add_plugins((CourseFlagPlugin, WindIndicatorPlugin, FlagDirectionUiPlugin))
+            .add_systems(Update, update_distances_ui_system)
             .add_systems(
                 OnEnter(AppState::Aim),
                 (
-                    update_distances_ui_system,
                     show_ground_info_ui_system,
                     update_ground_info_ui_system,
                 ),
