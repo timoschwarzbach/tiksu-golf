@@ -2,7 +2,6 @@ use std::time::Duration;
 
 use crate::chunk::chunk_loader::ChunkLoader;
 use crate::chunk::chunk_manager::ChunkManager;
-use crate::generation::grasslands::GrasslandsGenerator;
 use crate::objects::flag_pole::FlagPole;
 use crate::{camera::ActiveCamera, state::state::AppState};
 use avian3d::prelude::{
@@ -119,10 +118,9 @@ fn set_ball_inactive(mut golfball: Single<&mut Golfball>) {
 }
 
 fn regenerate_after_hitting_hole(
-    mut golfball: Single<&mut Transform, (With<Golfball>, Without<FlagPole>)>,
-    mut flag_pole: Single<&mut Transform, (With<FlagPole>, Without<Golfball>)>,
-    mut chunk_manager: ResMut<ChunkManager>,
-    mut commands: Commands,
+    golfball: Single<&mut Transform, (With<Golfball>, Without<FlagPole>)>,
+    chunk_manager: ResMut<ChunkManager>,
+    mut app_state: ResMut<NextState<AppState>>,
 ) {
     let [hole_x, hole_z] = chunk_manager.generator.hole();
     let hole_y = chunk_manager.generator.height_at(hole_x, hole_z);
@@ -131,19 +129,9 @@ fn regenerate_after_hitting_hole(
         && (golfball.translation.y - hole_y).abs() <= 0.2
         && (golfball.translation.z - hole_z).abs() <= 0.5;
 
-    if !on_hole {
-        return;
+    if on_hole {
+        app_state.set(AppState::PostScore);
     }
-
-    let seed = std::time::UNIX_EPOCH.elapsed().unwrap().as_secs() as u32;
-    chunk_manager.replace_generator(&mut commands, Box::new(GrasslandsGenerator::new(seed)));
-
-    let [start_x, start_z] = chunk_manager.generator.start();
-    golfball.translation = Vec3::new(start_x, 10.0, start_z);
-
-    let [hole_x, hole_z] = chunk_manager.generator.hole();
-    let hole_y = chunk_manager.generator.height_at(hole_x, hole_z) + 0.5;
-    flag_pole.translation = Vec3::new(hole_x, hole_y, hole_z);
 }
 
 fn check_ball_moving_system(

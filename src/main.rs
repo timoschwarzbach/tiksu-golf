@@ -3,11 +3,12 @@ mod animation;
 mod camera;
 pub mod chunk;
 pub mod generation;
+mod material;
 mod objects;
 mod state;
 mod ui;
-mod material;
 
+use crate::material::CustomMaterialsPlugin;
 use crate::{
     add_chunk_collider::create_collider_from_mesh,
     camera::CameraPlugin,
@@ -16,6 +17,7 @@ use crate::{
     state::{
         aim::AimStatePlugin,
         inshot::InShotPlugin,
+        postscore::PostScorePlugin,
         state::{AppState, debug_state_change_input_handler},
     },
     ui::shoot_challenge::ShootChallengePlugin,
@@ -23,7 +25,6 @@ use crate::{
 use avian3d::PhysicsPlugins;
 use bevy::light::CascadeShadowConfigBuilder;
 use bevy::prelude::*;
-use crate::material::CustomMaterialsPlugin;
 
 fn main() {
     App::new()
@@ -37,6 +38,7 @@ fn main() {
             AimStatePlugin,
             ShootChallengePlugin,
             InShotPlugin,
+            PostScorePlugin,
             FlagPolePlugin,
             CustomMaterialsPlugin,
         ))
