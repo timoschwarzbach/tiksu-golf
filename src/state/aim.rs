@@ -1,4 +1,3 @@
-use std::f32::consts::PI;
 use avian3d::prelude::{Forces, RigidBodyForces};
 use bevy::ecs::system::SystemId;
 use bevy::prelude::*;
@@ -6,6 +5,7 @@ use bevy::{
     app::{App, Update},
     state::state::OnExit,
 };
+use std::f32::consts::PI;
 
 use crate::camera::ActiveCamera;
 use crate::chunk::chunk_manager::ChunkManager;
@@ -76,8 +76,9 @@ fn aim_camera_position_system(
         .rotate_y(aim_state.rotation);
 
     // set camera 5m in front of golfball looking at golfball
-    let camera_position =
-        golfball_position.translation + vec3(look_direction_vector.x, 0.0, look_direction_vector.z) * -5.0 + vec3(0.0, 1.5, 0.0); // what if this is in the ground?
+    let camera_position = golfball_position.translation
+        + vec3(look_direction_vector.x, 0.0, look_direction_vector.z) * -5.0
+        + vec3(0.0, 1.5, 0.0); // what if this is in the ground?
     let aim_camera_transform = Transform::from_translation(camera_position).looking_at(
         Vec3::new(
             golfball_position.translation.x,
@@ -110,12 +111,12 @@ fn input_handler(
     if keyboard_input.pressed(KeyCode::ArrowRight) {
         aim_state.rotation -= multiplier * time.delta_secs();
     }
-    if keyboard_input.just_pressed(KeyCode::ArrowUp) {
+    if keyboard_input.pressed(KeyCode::ArrowUp) {
         if aim_state.height < 50.0 {
             aim_state.height += 1.0;
         }
     }
-    if keyboard_input.just_pressed(KeyCode::ArrowDown) {
+    if keyboard_input.pressed(KeyCode::ArrowDown) {
         if aim_state.height > 0.0 {
             aim_state.height -= 1.0;
         }
