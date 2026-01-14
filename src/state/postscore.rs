@@ -51,7 +51,7 @@ fn wait_for_regeneration_system(
 ) {
     *duration += time.delta();
     if *duration > Duration::from_secs(10) {
-        *duration = Duration::ZERO;
         game_state.set(AppState::Regenerate);
+        *duration = Duration::ZERO;
     }
 }
