@@ -26,8 +26,8 @@ When you launch the game, you will see a brief flyover over the course before yo
 
 The goal of the game is to get the golf ball from start to finish with as little punches as possible. You can control the direction and angle at which Tiksu desires to hit the ball. After confirming the parameters, you get presented with a skill challenge where you need to press the spacebar twice: once to set your power and another time to set your accuracy. The accuracy needs to be as close to the origin as possible (in the red area), otherwise, the shot is considered missed and the ball moves in a random direction.
 
-![aim challenge](docs\aim_challenge.png)
-![missed aim challenge](docs\failed_aim_challenge.gif)
+![aim challenge](docs/aim_challenge.png)
+![missed aim challenge](docs/failed_aim_challenge.gif)
 
 When you eventually hit the golf ball in the flagpole a short win animation with Tiksu is displayed (inspired by Mario Golf N64) after which you will see a top down view and a regeneration of the course is triggered and the game loop repeats – There is no end; Implementing this kind of sequence using ECS is a little bit tricky as it is not designed for sequences. We solved this trough different game states and systems that control timers to check if the game should switch into another state.
 
@@ -45,19 +45,19 @@ The terrain height is produced by adding multiple layers of Perlin noise. This t
 
 Everything below Y=-5 is filled with water. Each chunk that has parts of its terrain below water level is given a water plane. Chunks that are fully above water level are generated without one.
 
-![water](docs\water.png)
+![water](docs/water.png)
 
 ### Shader
 
 For the water mesh we sample a normal map texture [Link] twice to use it for the lighting in the fragment shader. We pass the texture, sampler and the time as parameters to the shader. This shader is mostly concerned with manipulating the UV coordinates in form of scaling and translating them for the sampling. We use sine and cosine functions for that. In the end we add the precomputed normals from bevy and add our normals from the normal map to pass them to bevy’s lighting functions. Hence, our reflections on the water are slightly shifted, but without explicitly mentioning it, you wouldn’t really notice it.
 
-![water](docs\water_shader.png)
+![water](docs/water_shader.png)
 
 ## Forest
 
 Forests can be seen generated throughout the world map. Their location and density are determined by Perlin noise. Though, trees cannot generate on the golf course, sand or water.
 
-![forest](docs\forest.png)
+![forest](docs/forest.png)
 
 ## Course
 
@@ -65,7 +65,7 @@ Each golf course hat a start, an end, and a way to get there. They have the shap
 
 We wrote a shader extension for the bevy standard material that lets us change the colour of the ground depending on where each fragment is on the world map.
 
-![course](docs\course.png)
+![course](docs/course.png)
 
 ## Flagpole
 
@@ -73,19 +73,19 @@ We place a cute little flagpole at the end of each course. Its approximate dista
 
 The pole is a simple cylinder while the cloth is a custom mesh with a custom material to simulate its movement in the wind. Figuring out the maths for this was challenging. Also managing to apply bevy’s PBR lighting in the fragment shader was difficult as well as getting bevy to cast shadows that react to the movement of the flag (we had to use the pre-pass vertex shader).
 
-![course](docs\flag_pole.gif)
+![course](docs/flag_pole.gif)
 
 ## Bunkers
 
 Sand bunkers are randomly spread across the course with the exception of the start and the end. Within sand bunkers, the ground is sand-coloured, indented and trying to kick the golf ball from here will greatly reduce its speed.
 
-![bunker](docs\bunker.gif)
+![bunker](docs/bunker.gif)
 
 ## Conclusion
 
 In combination, interesting structures could be generated °~°
 
-![generated smiley course](docs\smiley.png)
+![generated smiley course](docs/smiley.png)
 
 # Physics
 
@@ -101,17 +101,17 @@ Our game is Tiksu themed, therefore we must of course include a model of Tiksu. 
 
 Modelling was quite difficult, and I am certainly not very happy with the quality of the result – especially animations. This was due to time constrains, us never having done Blender before, and us also doing the model before Blender was introduced in Basic II. However, I think that the result kind of fits the theme and quirkiness of our game.
 
-![tiksu](docs\tiksu.png)
+![tiksu](docs/tiksu.png)
 
 # Skybox
 
-![skybox](docs\skybox.png)
+![skybox](docs/skybox.png)
 
 The idea of a skybox is pretty straightforward. We wanted to implement it in order to give our world more characteristics. Bevy requires the skybox as an array of 6 PNGs in a particular order (or some other cube map format we're not familiar with). We solved this by explicitly telling bevy that our png should be read as an image array during asset loading. It was not difficult to add the skybox, but we had problems finding a good and free to use skybox as well as aligning the sun in the skybox and bevy’s light source took time and trial and error.
 
 # User Interface
 
-![ui image](docs\ui.png)
+![ui image](docs/ui.png)
 
 ## 2D-Flag
 
@@ -143,10 +143,10 @@ The trajectory of the golf ball can be controlled with the arrow up and down key
 
 Initially, we wanted to include a wind indication model – like in the original. However, we never had time to implement is, as the priority was not high. So, instead, we now show the direction in which the currently active camera is looking. To achieve this, we spawn a Tiksu and a camera in another world layer (this can be thought of as a different scene). The image that this camera sees, is layered on top of our main scene as part of the UI. Challenges included finding out how to implement this using different world layers. Also, once we added animations to the Tiksu in the main world, the other Tiksu would spawn at our world origin. We believe this was because they we’re sharing the same mesh handler – however, we had great difficulties fixing this (cloning didn’t help). So they are now two completely separate models.
 
-![rotation](docs\direction_indicator.gif)
+![rotation](docs/direction_indicator.gif)
 
 ## Ground information
 
 The bottom right shows an indication as to how much resistance the ground has at the current golf ball’s position.
 
-![ground info](docs\ground_info.png)
+![ground info](docs/ground_info.png)
