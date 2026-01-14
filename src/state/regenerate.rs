@@ -80,7 +80,8 @@ fn regenerate_course(
     chunk_manager.replace_generator(&mut commands, Box::new(GrasslandsGenerator::new(seed)));
 
     let [start_x, start_z] = chunk_manager.generator.start();
-    golfball.translation = Vec3::new(start_x, 10.0, start_z);
+    let start_y = chunk_manager.generator.height_at(start_x, start_z) + 0.5;
+    golfball.translation = Vec3::new(start_x, start_y, start_z);
 
     let [hole_x, hole_z] = chunk_manager.generator.hole();
     let hole_y = chunk_manager.generator.height_at(hole_x, hole_z) + 0.5;
