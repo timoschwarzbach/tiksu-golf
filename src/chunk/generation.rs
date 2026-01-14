@@ -4,7 +4,8 @@ use crate::chunk::{CHUNK_FIDELITY, CHUNK_SIZE_METERS, Chunk};
 use crate::generation::{Prop, TerrainGenerator};
 use crate::material::ground::GroundMaterial;
 use bevy::asset::{Assets, Handle, RenderAssetUsages};
-use bevy::gltf::GltfAssetLabel;
+use bevy::ecs::component::Component;
+use bevy::gltf::{GltfAssetLabel, GltfMaterialName};
 use bevy::image::{
     ImageAddressMode, ImageFilterMode, ImageLoaderSettings, ImageSampler, ImageSamplerDescriptor,
 };
@@ -12,11 +13,9 @@ use bevy::light::NotShadowCaster;
 use bevy::math::Dir3;
 use bevy::mesh::{Indices, Mesh, Mesh3d, Meshable, PrimitiveTopology};
 use bevy::pbr::{ExtendedMaterial, MaterialExtension, MeshMaterial3d, StandardMaterial};
-use bevy::prelude::{
-    AlphaMode, Asset, AssetServer, Color, Commands, Entity, Image, Plane3d, Query, Reflect, Res,
-    ResMut, SceneRoot, Time, Transform, Vec3, Without, default,
-};
+use bevy::prelude::*;
 use bevy::render::render_resource::AsBindGroup;
+use bevy::scene::SceneInstanceReady;
 use bevy::shader::ShaderRef;
 
 const CHUNKS_MESHED_PER_TICK: usize = 24;
@@ -248,31 +247,35 @@ pub(super) fn insert_chunk_mesh(
 
             commands.entity(entity).add_child(child);
         }
+    }
+}
 
-        // props
-        for Prop {
-            position: (px, py, pz),
-            seed,
-            ..
-        } in &chunk.props
-        {
-            let height = 0.035 + ((*seed) % 100) as f32 * 0.0001;
-            let child = commands
-                .spawn((
-                    Transform::from_xyz(
-                        chunk.world_offset[0] as f32 + *px,
-                        *py - 0.5,
-                        chunk.world_offset[1] as f32 + *pz,
-                    )
-                    .with_scale(Vec3::splat(height)),
-                    SceneRoot(
-                        asset_server
-                            .load(GltfAssetLabel::Scene(0).from_asset("model/pine_tree.glb")),
-                    ),
-                ))
-                .id();
+#[derive(Component)]
+pub struct AlphaOverride;
 
-            commands.entity(entity).add_child(child);
+pub fn change_tree_material(
+    scene_ready: On<SceneInstanceReady>,
+    children: Query<&Children>,
+    _alpha_override: Query<&AlphaOverride>,
+    mesh_materials: Query<(&MeshMaterial3d<StandardMaterial>, &GltfMaterialName)>,
+    mut asset_materials: ResMut<Assets<StandardMaterial>>,
+) {
+    for descendant in children.iter_descendants(scene_ready.entity) {
+        let Ok((id, material_name)) = mesh_materials.get(descendant) else {
+            continue;
+        };
+        let Some(material) = asset_materials.get_mut(id.id()) else {
+            continue;
+        };
+
+        match material_name.0.as_str() {
+            "Leavs" => {
+                material.alpha_mode = AlphaMode::AlphaToCoverage;
+                break;
+            }
+            name => {
+                info!("not replacing: {name}");
+            }
         }
     }
 }
