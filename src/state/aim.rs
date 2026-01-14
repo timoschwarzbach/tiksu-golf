@@ -1,3 +1,4 @@
+use std::f32::consts::PI;
 use avian3d::prelude::{Forces, RigidBodyForces};
 use bevy::ecs::system::SystemId;
 use bevy::prelude::*;
@@ -42,9 +43,8 @@ impl Plugin for AimStatePlugin {
 
 #[derive(Resource)]
 pub struct AimState {
-    pub selected_club: u8,
+    pub height: f32,
     pub rotation: f32,
-    pub zoomed: bool,
 }
 
 #[derive(Component)]
@@ -56,9 +56,8 @@ fn set_aim_state(mut commands: Commands, camera: Single<Entity, With<ActiveCamer
 
     // set up state resource
     commands.insert_resource(AimState {
-        selected_club: 0,
+        height: 45.0,
         rotation: 0.0,
-        zoomed: false,
     });
 }
 
@@ -112,10 +111,14 @@ fn input_handler(
         aim_state.rotation -= multiplier * time.delta_secs();
     }
     if keyboard_input.just_pressed(KeyCode::ArrowUp) {
-        aim_state.zoomed = true;
+        if aim_state.height < 50.0 {
+            aim_state.height += 1.0;
+        }
     }
     if keyboard_input.just_pressed(KeyCode::ArrowDown) {
-        aim_state.zoomed = false;
+        if aim_state.height > 0.0 {
+            aim_state.height -= 1.0;
+        }
     }
 }
 
@@ -148,6 +151,7 @@ fn wait_for_golfball_punch_delay(
 
 fn execute_golfball_punch(
     aim_challenge_resource: Res<AimChallengeResource>,
+    aim_state: Res<AimState>,
     transform: Single<&Transform, With<AimCamera>>,
     mut next_aim_challenge_state: ResMut<NextState<AimChallengeState>>,
     mut next_app_state: ResMut<NextState<AppState>>,
@@ -156,10 +160,10 @@ fn execute_golfball_punch(
 ) {
     let mut missed = false;
     let power = aim_challenge_resource.power_marker.unwrap_or_default(); // 0 none ; 1 max
-    let direction: Vec3 = transform.forward().as_vec3();
-    let club_direction = Vec3::Y * power;
-    let mut inaccuracies = Quat::IDENTITY;
-    let mut deviation = Quat::IDENTITY;
+    let mut direction = **transform;
+    direction.rotate_local_x(aim_state.height / 180.0 * PI);
+    let mut inaccuracies = 0.0;
+    let mut deviation = 0.0;
 
     if let Some(precision) = aim_challenge_resource.precision_marker {
         if precision != 0.0 {
@@ -167,7 +171,7 @@ fn execute_golfball_punch(
                 precision.abs() * -std::f32::consts::FRAC_PI_2 * 0.2
                     ..precision.abs() * std::f32::consts::FRAC_PI_2 * 0.2,
             );
-            inaccuracies = Quat::from_rotation_y(inaccuracy_yaw);
+            inaccuracies = inaccuracy_yaw;
             // 0 +- 0.1 is precise
             if precision.abs() > 0.1 {
                 missed = true;
@@ -178,11 +182,12 @@ fn execute_golfball_punch(
     if missed {
         let random_yaw =
             rand::random_range(-std::f32::consts::FRAC_PI_2..std::f32::consts::FRAC_PI_2);
-        deviation = Quat::from_rotation_y(random_yaw);
+        deviation = random_yaw;
     }
 
-    let combined_rotation = deviation * inaccuracies;
-    let final_direction = combined_rotation * (club_direction + direction).normalize();
+    let combined_rotation = deviation + inaccuracies;
+    direction.rotate_local_y(combined_rotation);
+    let final_direction = direction.forward().as_vec3();
 
     let zone_type = chunk_manager
         .generator
