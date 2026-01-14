@@ -72,7 +72,7 @@ fn setup(mut commands: Commands) {
 
     // Text to describe the controls.
     commands.spawn((
-        Text::new("Controls:\nW/A/S/D: Move\nSpace: Move Up\nLShift: Move Down\nLCtrl: Speed Up\nArrows: Rotate"),
+        Text::new("Controls:\nArrow Keys: Rotate\nSpace: Shoot\n"),
         Node {
             position_type: PositionType::Absolute,
             top: px(200),
