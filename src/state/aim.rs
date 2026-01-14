@@ -77,7 +77,7 @@ fn aim_camera_position_system(
 
     // set camera 5m in front of golfball looking at golfball
     let camera_position =
-        golfball_position.translation + look_direction_vector * -5.0 + vec3(0.0, 1.5, 0.0); // what if this is in the ground?
+        golfball_position.translation + vec3(look_direction_vector.x, 0.0, look_direction_vector.z) * -5.0 + vec3(0.0, 1.5, 0.0); // what if this is in the ground?
     let aim_camera_transform = Transform::from_translation(camera_position).looking_at(
         Vec3::new(
             golfball_position.translation.x,
