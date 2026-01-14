@@ -141,7 +141,7 @@ impl TerrainGenerator for GrasslandsGenerator {
     }
 
     fn zone_type_at(&self, x: f32, y: f32) -> ZoneType {
-        if self.height_at(x, y) <= -4.0 {
+        if self.height_at(x, y) <= -5.0 {
             ZoneType::DeadZone
         } else if self.bunker_depth(x, y) != 0.0 {
             ZoneType::Bunker

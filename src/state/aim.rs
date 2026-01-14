@@ -150,7 +150,7 @@ fn execute_golfball_punch(
     transform: Single<&Transform, With<AimCamera>>,
     mut next_aim_challenge_state: ResMut<NextState<AimChallengeState>>,
     mut next_app_state: ResMut<NextState<AppState>>,
-    mut golfball_forces: Single<Forces, With<Golfball>>,
+    mut golfball: Single<(Forces, &Transform), With<Golfball>>,
     chunk_manager: Res<ChunkManager>,
 ) {
     let mut missed = false;
@@ -185,7 +185,7 @@ fn execute_golfball_punch(
 
     let zone_type = chunk_manager
         .generator
-        .zone_type_at(transform.translation.x, transform.translation.z);
+        .zone_type_at(golfball.1.translation.x, golfball.1.translation.z);
     let power_ground_multiplier = match zone_type {
         ZoneType::DeadZone => 0.0,
         ZoneType::Clean => rand::random_range(0.98..1.0),
@@ -197,7 +197,7 @@ fn execute_golfball_punch(
 
     // wait for tiksu
 
-    golfball_forces.apply_force(force_vector);
+    golfball.0.apply_force(force_vector);
     next_app_state.set(AppState::InShot);
     next_aim_challenge_state.set(AimChallengeState::Idle);
 }

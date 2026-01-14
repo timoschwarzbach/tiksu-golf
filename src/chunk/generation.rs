@@ -20,7 +20,7 @@ use bevy::render::render_resource::AsBindGroup;
 use bevy::shader::ShaderRef;
 
 const CHUNKS_MESHED_PER_TICK: usize = 24;
-const WATER_HEIGHT: f32 = -4.0;
+const WATER_HEIGHT: f32 = -5.0;
 
 impl Chunk {
     pub fn generate_at(generator: &dyn TerrainGenerator, world_offset: [i32; 2]) -> Self {
